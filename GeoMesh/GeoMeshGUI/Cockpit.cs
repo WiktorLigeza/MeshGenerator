@@ -50,7 +50,13 @@ namespace GeoMeshGUI
         {
             g = graph.CreateGraphics();
             if (set) { setGraph(); }
-            if (setQT) { putSubdivision(rootNode); }
+            if (setQT)
+            {
+               //putSubdivision(rootNode,0); 
+                Bitmap bmp = new Bitmap(image);
+                Engine.deleteRedundant(rootNode, bmp);
+                putSubdivision(rootNode, 0);
+            }
             
         }
 
@@ -253,19 +259,38 @@ namespace GeoMeshGUI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public void putSubdivision(QTnode root)
+        public void putSubdivision(QTnode root,int delay)
         {
-            System.Threading.Thread.Sleep(1);
-            g.DrawRectangle(new Pen(Color.DeepPink, 1), (float)root.rect.origin.x, (float)root.rect.origin.y, (float)root.rect.width, (float)root.rect.height);
+            System.Threading.Thread.Sleep(delay);
+            if (root.rect!=null)
+            {
+                //put diagonal
+                g.DrawLine(
+               new Pen(Color.DeepPink, 1),
+               (int)root.rect.origin.x + (float)root.rect.width, (int)root.rect.origin.y,
+                (float)root.rect.origin.x, (float)root.rect.origin.y+ (float)root.rect.height);
+
+                //put traingle
+                //Point[] triangle = new Point[] { new Point((int)root.rect.origin.x, (int)root.rect.origin.y),
+                //    new Point((float)root.rect.origin.x, (float)root.rect.origin.y,
+                //    new Point((int)root.rect.origin.x+(int)root.rect.width, (int)root.rect.origin.y) };
+                //g.DrawPolygon(new Pen(Color.Cyan, 1), triangle);
+
+                //put rectangle
+                g.DrawRectangle(new Pen(Color.DeepPink, 1), (float)root.rect.origin.x, (float)root.rect.origin.y,
+                   (float)root.rect.width, (float)root.rect.height);
+
+            }
+            
 
             if (root.n1 != null)
-                putSubdivision(root.n1);
+                putSubdivision(root.n1,delay);
             if (root.n2 != null)
-                putSubdivision(root.n2);
+                putSubdivision(root.n2,delay);
             if (root.n3 != null)
-                putSubdivision(root.n3);
+                putSubdivision(root.n3,delay);
             if (root.n4 != null)
-                putSubdivision(root.n4);
+                putSubdivision(root.n4,delay);
         }
 
         //***************************** BUTTONS **************************\\
@@ -314,6 +339,13 @@ namespace GeoMeshGUI
                 dialog.Filter = "Image files (*.jpg, *.jpeg, *.jpe, *.jfif, *.png) | *.jpg; *.jpeg; *.jpe; *.jfif; *.png";
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
+                    int tolerance = 3; //default
+                    CustomDialogBox tol = new CustomDialogBox("tolerance", "E N G A G E");
+                    if (tol.ShowDialog() == DialogResult.OK)
+                    {
+                        int.TryParse(tol.fileName, out tolerance);
+                    }
+
                     // get path
                     var filePath = dialog.FileName;
 
@@ -322,7 +354,7 @@ namespace GeoMeshGUI
                     graph.BackgroundImage = image;
 
                     //generate QT
-                    rootNode = Engine.quadTreeGenerator(image,graph.Width,graph.Height,1);
+                    rootNode = Engine.quadTreeGenerator(image,graph.Width,graph.Height,tolerance);
                     setQT = true;
                 }
             }

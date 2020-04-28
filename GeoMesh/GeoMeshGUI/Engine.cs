@@ -272,7 +272,6 @@ namespace GeoMeshGUI
             QTnode rootNode = new QTnode(new RectangleModel(new PointModel(0, 0), width, height), null, null, null, null);
 
             subDivide(rootNode, tol, bmp);
-            deleteRedundant(rootNode, bmp);
 
             bmp.Dispose();
             return rootNode;
@@ -336,24 +335,55 @@ namespace GeoMeshGUI
             return isMixed;
         }
 
-        static void deleteRedundant(QTnode root, Bitmap bmp)
+        public static void deleteRedundant(QTnode root, Bitmap bmp)
         {
+            if (root.n1 != null)
+            {
+                if (isRedundant(root.n1, bmp))
+                {
+                    root.n1 = null;
+                }
+                else deleteRedundant(root.n1, bmp);
+            }
+            if (root.n2 != null)
+            {
+                if (isRedundant(root.n2, bmp))
+                {
+                    root.n2 = null;
+                }
+                else deleteRedundant(root.n2, bmp);
+            }
+            if (root.n3 != null)
+            {
+                if (isRedundant(root.n3, bmp))
+                {
+                    root.n3 = null;
+                }
+                else deleteRedundant(root.n3, bmp);
+            }
+            if (root.n4 != null)
+            {
+                if (isRedundant(root.n4, bmp))
+                {
+                    root.n4 = null;
+                }
+                else deleteRedundant(root.n4, bmp);
+            }
 
-            if (isRedundant(root.n1,bmp))
-                root.n1 = null;
-            if (isRedundant(root.n2,bmp))
-                root.n2 = null;
-            if (isRedundant(root.n3,bmp))
-                root.n3 = null;
-            if (isRedundant(root.n4,bmp))
-                root.n4 = null;
+            //edge only
+            //if (root.n1 != null || root.n2 != null || root.n3 != null || root.n4 != null)
+            //{
+            //    //if (root.n1 != null && root.n2 != null && root.n3 != null && root.n4 != null){}
+            //    //else root.rect = null;
+            //      root.rect = null;
+            //}
+
         }
 
         static bool isRedundant(QTnode root, Bitmap bmp)
         {
             bool isBlack = false;
             bool isWhite = false;
-
 
             for (int wi = (int)root.rect.origin.x; wi < (root.rect.origin.x + root.rect.width); wi++)
             {
@@ -362,11 +392,14 @@ namespace GeoMeshGUI
                     Color pixelColor = bmp.GetPixel((int)wi, (int)hi);
 
                     if (pixelColor.R == 0 && pixelColor.G == 0 && pixelColor.B == 0)
+                    {
                         isBlack = true;
-
+                    }
+                      
                     if (pixelColor.R == 255 && pixelColor.G == 255 && pixelColor.B == 255)
+                    {
                         isWhite = true;
-
+                    }
                     if (isBlack && isWhite)
                         return false;
                 }

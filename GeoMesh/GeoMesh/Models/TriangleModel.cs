@@ -6,26 +6,15 @@ namespace GeoMesh.Models
 {
     public class TriangleModel
     {
-        public PointModel P1;
-        public PointModel P2;
-        public PointModel P3;
+        public PointModel origin;
+        public double width;
+        public double height;
 
-        /// <summary>
-        /// constructor
-        /// </summary>
-        public TriangleModel(PointModel P1, PointModel P2, PointModel P3)
+        public TriangleModel(PointModel origin, double width, double height)
         {
-            this.P1 = P1;
-            this.P2 = P2;
-            this.P3 = P3;
-        }
-
-        public string Display
-        {
-            get
-            {
-                return $"P1: {P1.x} {P1.y} , P2: {P2.x} {P2.y} , P3: {P3.x} {P3.y}";
-            }
+            this.height = height;
+            this.width = width;
+            this.origin = origin;
         }
     }
 }
