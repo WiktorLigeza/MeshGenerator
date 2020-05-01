@@ -26,6 +26,9 @@ namespace GeoMesh.Models
             this.y = y;
         }
 
+        /// <summary>
+        /// displays coordinates eg. x: 5, y:3
+        /// </summary>
         public string Display
         {
             get

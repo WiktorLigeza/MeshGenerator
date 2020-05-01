@@ -20,21 +20,21 @@ namespace GeoMesh.Models
         public PointModel B;
 
 
-        /// <summary>
-        /// constructor
-        /// </summary>
+        
         public LineModel(PointModel A, PointModel B)
         {
             this.A = A;
             this.B = B;
         }
 
-
+        /// <summary>
+        /// displays coordinates eg. "A: 5, 6 | B: 7, 3"
+        /// </summary>
         public string Display
         {
             get
             {
-                return $"A: {A.x} {A.y} ,B: {B.x} {B.y}";
+                return $"A: {A.x} {A.y} | B: {B.x} {B.y}";
             }
         }
 

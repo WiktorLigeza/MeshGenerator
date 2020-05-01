@@ -22,6 +22,7 @@ namespace GeoMeshGUI
         List<LineModel> links = new List<LineModel>();
         List<PointModel> matrix = new List<PointModel>();
         QTnode rootNode;
+        QTnodeTriangle rootNode_Triangle;
         public Cockpit()
         {
             InitializeComponent();
@@ -30,7 +31,7 @@ namespace GeoMeshGUI
             center_y = (graph.Height / 2) +3;
         }
 
-        //***************************** GRAPH **************************\\
+        //graph rel
         Graphics g = null;
         Pen axis = new Pen(Color.DeepPink);
         Pen redLine = new Pen(Color.Red);
@@ -39,8 +40,11 @@ namespace GeoMeshGUI
         Image image;
         bool set = true;
         bool setQT = false;
-   
+        //-------------------------------------------------------------------------------------------------------------------------------------\\INIT
 
+
+
+        //***************************** GRAPH **************************\\
         /// <summary>
         /// init graph
         /// </summary>
@@ -54,10 +58,46 @@ namespace GeoMeshGUI
             {
                //putSubdivision(rootNode,0); 
                 Bitmap bmp = new Bitmap(image);
-                Engine.deleteRedundant(rootNode, bmp);
-                putSubdivision(rootNode, 0);
+
+                ///rect
+                // Engine.onlyFigure(rootNode, bmp, false); //only fig
+                ////// Engine.deleteRedundant(rootNode, bmp); 
+                // putSubdivision(rootNode, 0, "pink");
+
+
+                ///tria
+                Engine.onlyFigure_Triangle(rootNode_Triangle, bmp, false); //only fig
+                putSubdivision_Triangle(rootNode_Triangle, 0, "pink");
+
             }
             
+        }
+
+        private Pen setPenColor(string color)
+        {
+            Pen NewLinePen;
+            //set color
+            if (color == "green")
+            {
+                NewLinePen = new Pen(Color.Green, 1);
+            }
+            else if (color == "red")
+            {
+                NewLinePen = new Pen(Color.Red, 1);
+            }
+            else if (color == "pink")
+            {
+                NewLinePen = new Pen(Color.DeepPink, 1);
+            }
+            else if (color == "cyan")
+            {
+                NewLinePen = new Pen(Color.Cyan, 1);
+            }
+            else
+            {
+                NewLinePen = new Pen(Color.Black, 1);
+            }
+            return NewLinePen;
         }
 
         public void setGraph()
@@ -211,35 +251,11 @@ namespace GeoMeshGUI
         /// <param name="color"></param>
         public void putPolygon(List<PointModel> PolygonVertices, string color)
         {
-            Pen NewLinePen;
-            //set color
-            if (color == "green")
-            {
-                NewLinePen = new Pen(Color.Green, 2);
-            }
-            else if (color == "red")
-            {
-                NewLinePen = new Pen(Color.Red, 2);
-            }
-            else if (color == "pink")
-            {
-                NewLinePen = new Pen(Color.DeepPink, 2);
-            }
-            else if (color == "cyan")
-            {
-                NewLinePen = new Pen(Color.Cyan, 2);
-            }
-            else
-            {
-                NewLinePen = new Pen(Color.Black, 2);
-            }
-
-
             for (int i = 0; i < PolygonVertices.Count - 1; i++)
             {
                 System.Threading.Thread.Sleep(50);
                 g.DrawLine(
-                 NewLinePen,
+                setPenColor(color),
                  (float)PolygonVertices[i].x + center_x + 3,
                  -1 * (float)PolygonVertices[i].y - center_y +3,
                  (float)PolygonVertices[i + 1].x + center_x +3,
@@ -247,7 +263,7 @@ namespace GeoMeshGUI
             }
             System.Threading.Thread.Sleep(50);
             g.DrawLine(
-                 NewLinePen,
+                 setPenColor(color),
                  (float)PolygonVertices[0].x + center_x +3 ,
                  -1 * (float)PolygonVertices[0].y - center_y + 3,
                  (float)PolygonVertices[PolygonVertices.Count - 1].x + center_x + 3,
@@ -259,16 +275,16 @@ namespace GeoMeshGUI
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public void putSubdivision(QTnode root,int delay)
+        public void putSubdivision(QTnode root,int delay, string color)
         {
             System.Threading.Thread.Sleep(delay);
             if (root.rect!=null)
             {
                 //put diagonal
-                g.DrawLine(
-               new Pen(Color.DeepPink, 1),
-               (int)root.rect.origin.x + (float)root.rect.width, (int)root.rect.origin.y,
-                (float)root.rect.origin.x, (float)root.rect.origin.y+ (float)root.rect.height);
+               // g.DrawLine(
+               //new Pen(Color.DeepPink, 1),
+               //(int)root.rect.origin.x + (float)root.rect.width, (int)root.rect.origin.y,
+               // (float)root.rect.origin.x, (float)root.rect.origin.y + (float)root.rect.height);
 
                 //put traingle
                 //Point[] triangle = new Point[] { new Point((int)root.rect.origin.x, (int)root.rect.origin.y),
@@ -277,21 +293,84 @@ namespace GeoMeshGUI
                 //g.DrawPolygon(new Pen(Color.Cyan, 1), triangle);
 
                 //put rectangle
-                g.DrawRectangle(new Pen(Color.DeepPink, 1), (float)root.rect.origin.x, (float)root.rect.origin.y,
+                g.DrawRectangle(setPenColor(color), (float)root.rect.origin.x, (float)root.rect.origin.y,
                    (float)root.rect.width, (float)root.rect.height);
 
+                //matrix
+                g.FillEllipse(
+            Brushes.Cyan,
+            (float)(float)root.rect.origin.x-1,
+             (float)root.rect.origin.y-1,
+             2,
+             2);
             }
             
 
+
             if (root.n1 != null)
-                putSubdivision(root.n1,delay);
+                putSubdivision(root.n1,delay,color);
             if (root.n2 != null)
-                putSubdivision(root.n2,delay);
+                putSubdivision(root.n2,delay,color);
             if (root.n3 != null)
-                putSubdivision(root.n3,delay);
+                putSubdivision(root.n3,delay,color);
             if (root.n4 != null)
-                putSubdivision(root.n4,delay);
+                putSubdivision(root.n4,delay,color);
         }
+
+        public void putSubdivision_Triangle(QTnodeTriangle root, int delay, string color)
+        {
+            System.Threading.Thread.Sleep(delay);
+            if (root.triaDown != null && root.triaUp!= null)
+            {
+                //put diagonal
+                // g.DrawLine(
+                //new Pen(Color.DeepPink, 1),
+                //(int)root.rect.origin.x + (float)root.rect.width, (int)root.rect.origin.y,
+                // (float)root.rect.origin.x, (float)root.rect.origin.y + (float)root.rect.height);
+
+                //put traingle
+                Point[] triangleUp = new Point[] {
+                new Point((int)root.triaUp.origin.x, (int)root.triaUp.origin.y),
+                    new Point((int)root.triaUp.origin.x + (int)root.triaUp.width, (int)root.triaUp.origin.y),
+                    new Point((int)root.triaUp.origin.x, (int)root.triaUp.origin.y + (int)root.triaUp.height) };
+            g.DrawPolygon(new Pen(Color.DeepPink, 1), triangleUp);
+                Point[] triangleDown = new Point[] {
+                new Point((int)root.triaDown.origin.x, (int)root.triaDown.origin.y),
+                    new Point((int)root.triaDown.origin.x - (int)root.triaDown.width, (int)root.triaDown.origin.y),
+                    new Point((int)root.triaDown.origin.x, (int)root.triaDown.origin.y - (int)root.triaDown.height) };
+            g.DrawPolygon(new Pen(Color.Cyan, 1), triangleDown);
+
+
+            //matrix
+            //g.FillEllipse(
+            //Brushes.Cyan,
+            //(float)(float)root.triaDown.origin.x - 1,
+            // (float)root.triaDown.origin.y - 1,
+            // 2,
+            // 2);
+            //         g.FillEllipse(
+            //Brushes.BlueViolet,
+            //(float)(float)root.triaUp.origin.x - 1,
+            // (float)root.triaUp.origin.y - 1,
+            // 2,
+            // 2);
+        }
+
+
+
+            if (root.n1 != null)
+                putSubdivision_Triangle(root.n1, delay, color);
+            if (root.n2 != null)
+                putSubdivision_Triangle(root.n2, delay, color);
+            if (root.n3 != null)
+                putSubdivision_Triangle(root.n3, delay, color);
+            if (root.n4 != null)
+                putSubdivision_Triangle(root.n4, delay, color);
+        }
+    
+        //-------------------------------------------------------------------------------------------------------------------------------------\\GRAPH
+
+
 
         //***************************** BUTTONS **************************\\
         // mesh
@@ -354,7 +433,9 @@ namespace GeoMeshGUI
                     graph.BackgroundImage = image;
 
                     //generate QT
-                    rootNode = Engine.quadTreeGenerator(image,graph.Width,graph.Height,tolerance);
+                    rootNode = Engine.quadTreeGenerator(image,graph.Width,graph.Height,tolerance); //rectangle
+                    rootNode_Triangle = Engine.quadTreeGenerator_Triangle(image, graph.Width, graph.Height, tolerance); //triangle
+
                     setQT = true;
                 }
             }
@@ -420,7 +501,7 @@ namespace GeoMeshGUI
             }
         }
 
-        // other
+        // data
         private void SAVEbutton_Click(object sender, EventArgs e)
         {
             string fileName = "default";
@@ -458,8 +539,8 @@ namespace GeoMeshGUI
                 putMatrix(matrix,5);
             }
         }
+        //-------------------------------------------------------------------------------------------------------------------------------------\\BUTTONS
 
-      
 
 
         //***************************** ACTION **************************\\
@@ -498,6 +579,7 @@ namespace GeoMeshGUI
             graph.BackgroundImage = null;
 
         }
+        //-------------------------------------------------------------------------------------------------------------------------------------\\ACTION
     }
 }
 
