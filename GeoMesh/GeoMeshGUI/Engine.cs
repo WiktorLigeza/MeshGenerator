@@ -717,7 +717,6 @@ namespace GeoMeshGUI
                 }
                 else onlyFigure_Triangle(root.n3, bmp, black);
             }
-            
             if (root.n4 != null && root.n4.triaUp != null)
             {
                 (redundant, black) = isFigure_Triangle_Up(root.n4.triaUp, bmp);
@@ -757,7 +756,6 @@ namespace GeoMeshGUI
                 }
                 else onlyFigure_Triangle(root.n3, bmp, black);
             }
-
             if (root.n4 != null && root.n4.triaDown != null)
             {
                 (redundant, black) = isFigure_Triangle_Down(root.n4.triaDown, bmp);
@@ -839,5 +837,38 @@ namespace GeoMeshGUI
         }
         //-------------------------------------------------------------------------------------------------------------------------------------\\QUAD TREE TRIANGLE
 
+
+        //***************************** RAYCASTING **************************\\
+        public static double cast (LineModel l1,LineModel l2)
+        {
+            //x 
+            double x1 = l1.A.x;
+            double x2 = l1.B.x;
+            double x3 = l2.A.x;
+            double x4 = l2.B.x;
+
+            //y
+            double y1 = l1.A.y;
+            double y2 = l1.B.y;
+            double y3 = l2.A.y;
+            double y4 = l2.B.y;
+
+            double den = (x1-x2) * (y3 - y4) - (y1 - y2) * (x3-x4);
+            if(den == 0)//parallel
+            {
+                return -1;
+            }
+            double t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
+            double u = ((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
+
+            if (t > 0 && t < 1 && u > 0)
+            {
+                return u;
+            }
+            else
+            {
+                return -1;
+            }
+        }
     }
 }

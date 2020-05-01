@@ -28,7 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Cockpit));
+            this.tmrMoving = new System.Windows.Forms.Timer(this.components);
             this.graph = new System.Windows.Forms.Panel();
             this.labelAxis = new System.Windows.Forms.Label();
             this.TRIANGULARbutton = new System.Windows.Forms.RadioButton();
@@ -45,7 +47,15 @@
             this.label5 = new System.Windows.Forms.Label();
             this.OPENbutton = new System.Windows.Forms.Button();
             this.QTbutton = new System.Windows.Forms.RadioButton();
+            this.RAYCASTINGutton = new System.Windows.Forms.RadioButton();
+            this.QTTbutton = new System.Windows.Forms.RadioButton();
             this.SuspendLayout();
+            // 
+            // tmrMoving
+            // 
+            this.tmrMoving.Enabled = true;
+            this.tmrMoving.Interval = 50;
+            this.tmrMoving.Tick += new System.EventHandler(this.tmrMoving_Tick);
             // 
             // graph
             // 
@@ -57,7 +67,6 @@
             this.graph.Size = new System.Drawing.Size(567, 376);
             this.graph.TabIndex = 8;
             this.graph.Paint += new System.Windows.Forms.PaintEventHandler(this.graph_Paint);
-            this.graph.MouseClick += new System.Windows.Forms.MouseEventHandler(this.graph_MouseClick);
             this.graph.MouseMove += new System.Windows.Forms.MouseEventHandler(this.graph_MouseMove);
             // 
             // labelAxis
@@ -100,7 +109,7 @@
             this.RHOMBULARbutton.AutoSize = true;
             this.RHOMBULARbutton.BackColor = System.Drawing.Color.Transparent;
             this.RHOMBULARbutton.ForeColor = System.Drawing.Color.Fuchsia;
-            this.RHOMBULARbutton.Location = new System.Drawing.Point(935, 293);
+            this.RHOMBULARbutton.Location = new System.Drawing.Point(935, 312);
             this.RHOMBULARbutton.Name = "RHOMBULARbutton";
             this.RHOMBULARbutton.Size = new System.Drawing.Size(80, 17);
             this.RHOMBULARbutton.TabIndex = 13;
@@ -113,7 +122,7 @@
             this.TRAPEZOIDALbutton.AutoSize = true;
             this.TRAPEZOIDALbutton.BackColor = System.Drawing.Color.Transparent;
             this.TRAPEZOIDALbutton.ForeColor = System.Drawing.Color.Fuchsia;
-            this.TRAPEZOIDALbutton.Location = new System.Drawing.Point(935, 316);
+            this.TRAPEZOIDALbutton.Location = new System.Drawing.Point(935, 335);
             this.TRAPEZOIDALbutton.Name = "TRAPEZOIDALbutton";
             this.TRAPEZOIDALbutton.Size = new System.Drawing.Size(83, 17);
             this.TRAPEZOIDALbutton.TabIndex = 14;
@@ -139,7 +148,7 @@
             this.label2.AutoSize = true;
             this.label2.BackColor = System.Drawing.Color.Transparent;
             this.label2.ForeColor = System.Drawing.Color.Fuchsia;
-            this.label2.Location = new System.Drawing.Point(935, 277);
+            this.label2.Location = new System.Drawing.Point(935, 296);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(152, 13);
             this.label2.TabIndex = 16;
@@ -239,12 +248,40 @@
             this.QTbutton.UseVisualStyleBackColor = false;
             this.QTbutton.Click += new System.EventHandler(this.QTbutton_Click);
             // 
+            // RAYCASTINGutton
+            // 
+            this.RAYCASTINGutton.AutoSize = true;
+            this.RAYCASTINGutton.BackColor = System.Drawing.Color.Transparent;
+            this.RAYCASTINGutton.ForeColor = System.Drawing.Color.Fuchsia;
+            this.RAYCASTINGutton.Location = new System.Drawing.Point(935, 358);
+            this.RAYCASTINGutton.Name = "RAYCASTINGutton";
+            this.RAYCASTINGutton.Size = new System.Drawing.Size(121, 17);
+            this.RAYCASTINGutton.TabIndex = 25;
+            this.RAYCASTINGutton.Text = "R A Y C A S T I N G";
+            this.RAYCASTINGutton.UseVisualStyleBackColor = false;
+            this.RAYCASTINGutton.Click += new System.EventHandler(this.RAYCASTINGutton_Click_1);
+            // 
+            // QTTbutton
+            // 
+            this.QTTbutton.AutoSize = true;
+            this.QTTbutton.BackColor = System.Drawing.Color.Transparent;
+            this.QTTbutton.ForeColor = System.Drawing.Color.Fuchsia;
+            this.QTTbutton.Location = new System.Drawing.Point(939, 257);
+            this.QTTbutton.Name = "QTTbutton";
+            this.QTTbutton.Size = new System.Drawing.Size(169, 17);
+            this.QTTbutton.TabIndex = 26;
+            this.QTTbutton.Text = "Q U A D T R E E (TRIANGLE)";
+            this.QTTbutton.UseVisualStyleBackColor = false;
+            this.QTTbutton.Click += new System.EventHandler(this.QTTbutton_Click);
+            // 
             // Cockpit
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.ClientSize = new System.Drawing.Size(1176, 697);
+            this.Controls.Add(this.QTTbutton);
+            this.Controls.Add(this.RAYCASTINGutton);
             this.Controls.Add(this.QTbutton);
             this.Controls.Add(this.OPENbutton);
             this.Controls.Add(this.label5);
@@ -261,6 +298,7 @@
             this.Controls.Add(this.TRIANGULARbutton);
             this.Controls.Add(this.labelAxis);
             this.Controls.Add(this.graph);
+            this.DoubleBuffered = true;
             this.Name = "Cockpit";
             this.Text = "Cockpit";
             this.ResumeLayout(false);
@@ -286,5 +324,9 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button OPENbutton;
         private System.Windows.Forms.RadioButton QTbutton;
+        private System.Windows.Forms.RadioButton RAYCASTINGutton;
+        private System.Windows.Forms.RadioButton QTTbutton;
+        private System.Windows.Forms.Timer tmrMoving;
+
     }
 }

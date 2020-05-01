@@ -18,7 +18,9 @@ namespace GeoMeshGUI
         //***************************** INIT **************************\\
         float center_x;
         float center_y;
-        int x, y;
+        float mouse_x;
+        float mouse_y;
+        int _x, _y, x, y;
         List<LineModel> links = new List<LineModel>();
         List<PointModel> matrix = new List<PointModel>();
         QTnode rootNode;
@@ -29,6 +31,8 @@ namespace GeoMeshGUI
             //setting center point of graph
             center_x = (graph.Width / 2)+3;
             center_y = (graph.Height / 2) +3;
+            _x = 50;
+            _y = 50;
         }
 
         //graph rel
@@ -39,12 +43,15 @@ namespace GeoMeshGUI
         Pen grayLine = new Pen(Color.Gray);
         Image image;
         bool set = true;
-        bool setQT = false;
+        bool setQT = false; //quad tree rect
+        bool setQTT = false; // quad tree tria
+        bool raycasting = false;
         //-------------------------------------------------------------------------------------------------------------------------------------\\INIT
 
 
 
         //***************************** GRAPH **************************\\
+
         /// <summary>
         /// init graph
         /// </summary>
@@ -56,23 +63,28 @@ namespace GeoMeshGUI
             if (set) { setGraph(); }
             if (setQT)
             {
-               //putSubdivision(rootNode,0); 
+                //putSubdivision(rootNode,0); 
                 Bitmap bmp = new Bitmap(image);
 
                 ///rect
-                // Engine.onlyFigure(rootNode, bmp, false); //only fig
-                ////// Engine.deleteRedundant(rootNode, bmp); 
-                // putSubdivision(rootNode, 0, "pink");
-
-
+                Engine.onlyFigure(rootNode, bmp, false); //only fig
+                // Engine.deleteRedundant(rootNode, bmp); 
+                putSubdivision(rootNode, 0, "pink");
+            }
+            if (setQTT)
+            {
+                Bitmap bmp = new Bitmap(image);
                 ///tria
                 Engine.onlyFigure_Triangle(rootNode_Triangle, bmp, false); //only fig
                 putSubdivision_Triangle(rootNode_Triangle, 0, "pink");
+            }
 
+            if(raycasting)
+            {
+                e.Graphics.FillEllipse(Brushes.Cyan, mouse_x, mouse_y, 7, 7);
             }
             
         }
-
         private Pen setPenColor(string color)
         {
             Pen NewLinePen;
@@ -104,10 +116,10 @@ namespace GeoMeshGUI
         {
             axis.Width = 2;
             g.DrawLine(axis, 3, graph.Height - 3, graph.Width - 3, graph.Height - 3); //x
-            g.DrawLine(axis,3, 3, 3, graph.Height - 3); //y
+            g.DrawLine(axis, 3, 3, 3, graph.Height - 3); //y
 
             center_x = 0;
-            center_y = -1 * graph.Height + 6;           
+            center_y = -1 * graph.Height + 6;
         }
         /// <summary>
         /// show mouse coordinates
@@ -116,13 +128,16 @@ namespace GeoMeshGUI
         /// <param name="e"></param>
         private void graph_MouseMove(object sender, MouseEventArgs e)
         {
-            if(set == false)
+            mouse_x = e.X;
+            mouse_y = e.Y;
+
+            if (set == false)
             {
-                labelAxis.Text = ("X: " + (e.X) + "   Y: " + -1 * (e.Y - graph.Height));
+                labelAxis.Text = ("X: " + (mouse_x) + "   Y: " + -1 * (mouse_y - graph.Height));
             }
             else
             {
-                labelAxis.Text = ("X: " + (e.X - 3) + "   Y: " + -1 * (e.Y - graph.Height + 3));
+                labelAxis.Text = ("X: " + (mouse_x - 3) + "   Y: " + -1 * (mouse_y - graph.Height + 3));
             }
         }
 
@@ -367,7 +382,6 @@ namespace GeoMeshGUI
             if (root.n4 != null)
                 putSubdivision_Triangle(root.n4, delay, color);
         }
-    
         //-------------------------------------------------------------------------------------------------------------------------------------\\GRAPH
 
 
@@ -410,8 +424,10 @@ namespace GeoMeshGUI
 
         private void QTbutton_Click(object sender, EventArgs e)
         {
+            raycasting = false;
             try
             {
+                rootNode = null;
                 refreshGraph(false, false);
 
                 OpenFileDialog dialog = new OpenFileDialog();
@@ -434,8 +450,7 @@ namespace GeoMeshGUI
 
                     //generate QT
                     rootNode = Engine.quadTreeGenerator(image,graph.Width,graph.Height,tolerance); //rectangle
-                    rootNode_Triangle = Engine.quadTreeGenerator_Triangle(image, graph.Width, graph.Height, tolerance); //triangle
-
+                    
                     setQT = true;
                 }
             }
@@ -445,10 +460,50 @@ namespace GeoMeshGUI
                 msg.Show();
             }
         }
+        private void QTTbutton_Click(object sender, EventArgs e)
+        {
+            raycasting = false;
+            try
+            {
+                rootNode_Triangle = null;
+                refreshGraph(false, false);
+
+                OpenFileDialog dialog = new OpenFileDialog();
+                dialog.Filter = "Image files (*.jpg, *.jpeg, *.jpe, *.jfif, *.png) | *.jpg; *.jpeg; *.jpe; *.jfif; *.png";
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    int tolerance = 3; //default
+                    CustomDialogBox tol = new CustomDialogBox("tolerance", "E N G A G E");
+                    if (tol.ShowDialog() == DialogResult.OK)
+                    {
+                        int.TryParse(tol.fileName, out tolerance);
+                    }
+
+                    // get path
+                    var filePath = dialog.FileName;
+
+                    //add picture
+                    image = Image.FromFile(filePath);
+                    graph.BackgroundImage = image;
+
+                    //generate QT
+                    rootNode_Triangle = Engine.quadTreeGenerator_Triangle(image, graph.Width - 1, graph.Height, tolerance); //triangle
+
+                    setQTT = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox msg = new CustomMessageBox(ex.ToString());
+                msg.Show();
+            }
+        }
+
 
         // test
         private void RHOMBULARbutton_Click(object sender, EventArgs e)
         {
+            raycasting = false;
             if (validate())
             {
                 graph.Refresh();
@@ -476,6 +531,7 @@ namespace GeoMeshGUI
 
         private void TRAPEZOIDALbutton_Click(object sender, EventArgs e)
         {
+            raycasting = false;
             if (validate())
             {
                 graph.Refresh();
@@ -563,24 +619,33 @@ namespace GeoMeshGUI
             return output;
         }
 
-        private void graph_MouseClick(object sender, MouseEventArgs e)
+        private void tmrMoving_Tick(object sender, EventArgs e)
         {
-            Bitmap bmp = new Bitmap(image);
-            Color pixelColor = bmp.GetPixel(e.X, e.Y);
-            CustomMessageBox msg = new CustomMessageBox(pixelColor.ToString());
-            msg.Show();
+            if (raycasting)
+            {
+                graph.Refresh();
+            }
         }
 
-        public void refreshGraph(bool setGraph,bool setQTT)
+        private void RAYCASTINGutton_Click_1(object sender, EventArgs e)
+        {
+            raycasting = true;
+        }
+
+        public void refreshGraph(bool setGraph,bool setQ)
         {
             set = setGraph;
-            setQT = setQTT;
+            setQT = setQ;
+            setQTT = setQ;
             graph.Refresh();
             graph.BackgroundImage = null;
+            raycasting = false;
+        }
 
         }
+
         //-------------------------------------------------------------------------------------------------------------------------------------\\ACTION
-    }
+    
 }
 
 
