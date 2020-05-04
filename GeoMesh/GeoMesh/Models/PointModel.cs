@@ -37,6 +37,11 @@ namespace GeoMesh.Models
             }
         }
 
+        public double Distance(PointModel to)
+        {
+           return Math.Sqrt(Math.Pow((this.x - this.x), 2) + Math.Pow((to.y - to.y), 2));
+        }
+
         //serialization
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {

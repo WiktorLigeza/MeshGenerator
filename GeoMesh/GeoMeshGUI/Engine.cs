@@ -769,7 +769,7 @@ namespace GeoMeshGUI
             //edge only
             if (root.n1 != null || root.n2 != null || root.n3 != null || root.n4 != null)
             {
-                root.triaDown= null;
+                root.triaDown = null;
             }
 
         }
@@ -839,7 +839,7 @@ namespace GeoMeshGUI
 
 
         //***************************** RAYCASTING **************************\\
-        public static double cast (LineModel l1,LineModel l2)
+        public static PointModel cast (LineModel l1,LineModel l2)
         {
             //x 
             double x1 = l1.A.x;
@@ -856,19 +856,116 @@ namespace GeoMeshGUI
             double den = (x1-x2) * (y3 - y4) - (y1 - y2) * (x3-x4);
             if(den == 0)//parallel
             {
-                return -1;
+                return null;
             }
             double t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
-            double u = ((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
+            double u = -1*((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
 
-            if (t > 0 && t < 1 && u > 0)
+            if (t > 0 && t < 1 && u >= 0 && u<=1)
             {
-                return u;
+                PointModel p = new PointModel(0,0);
+                p.x = x1 + t * (x2 - x1);
+                p.y = y1 + t * (y2 - y1);
+                return p;
             }
             else
             {
-                return -1;
+                return null;
             }
+        }
+
+        public static PointModel CrossingPointerCramer(LineModel l1, LineModel l2)
+        {
+            double W, Wx, Wy, X, Y;
+            double[] coefficient;
+            PointModel output = new PointModel(0,0);
+
+            ////////////////////////////GATHER DATA
+            coefficient = SLE(l1);
+            double A1 = coefficient[0]; //a
+            int B1 = -1;
+            double C1 = coefficient[1]; //b
+
+            coefficient = SLE(l2);
+            double A2 = coefficient[0]; //a
+            int B2 = -1;
+            double C2 = coefficient[1]; //b
+
+
+            ////////////////////////////COMPUTE
+            W = (A1 * B2 - B1 * A2);
+            Wx = ((-C1) * B2 - B1 * (-C2));
+            Wy = (A1 * (-C2) - (-C1) * A2);
+
+            X = Wx / W;
+            Y = Wy / W;
+
+            output.x = X;
+            output.y = Y;
+
+            return output;
+        }
+
+        public static double[] SLE(LineModel line)
+        {
+            double a, b;
+            double[] result = new double[2];
+            if (line != null)
+            {
+                a = (line.A.y - line.B.y) / (line.A.x - line.B.x); //(y1 - y2) / (x1 - x2);
+                b = line.A.y - a * line.A.x;  //y1 - a * x1;
+                                              //Console.WriteLine("equation: y=" +a+"x+"+b);
+                result[0] = a;
+                result[1] = b;         
+            }
+            else
+            {
+                result[0] = 0;
+                result[1] = 0;
+            }
+            return result;
+
+        }
+
+        public static LineModel LineRotation(LineModel input, double angle)
+        {
+            LineModel line = new LineModel(new PointModel(0,0), new PointModel(0, 0));
+
+            //origin
+            line.A.x = input.A.x;
+            line.A.y = input.A.y;
+            //point
+            line.B.x = input.B.x;
+            line.B.y = input.B.y;
+           
+            angle = (Math.PI / 180) * angle;
+            line.B.x = ((input.B.x - input.A.x) * Math.Cos(angle) - (input.B.y - input.A.y) * Math.Sin(angle))+ input.A.x;
+            line.B.y = ((input.B.y - input.A.y) * Math.Cos(angle) + (input.B.x - input.A.x) * Math.Sin(angle)) + input.A.y;
+
+            return line;
+        }
+
+        public static List<PointModel> generateRandomPoints(int elements)
+        {
+            List<PointModel> randomPointsList = new List<PointModel>();
+            Random random = new Random();
+            for (int i = 0; i < elements; i++)
+            {
+                randomPointsList.Add(new PointModel(random.Next(0, 570), random.Next(0, 370)));
+            }
+            return randomPointsList;
+        }
+        public static List<LineModel> generateRandomLines(int elements)
+        {
+            List<LineModel> randomLinesList = new List<LineModel>();
+            Random random = new Random();
+            List<PointModel> randomPointsList = generateRandomPoints(elements*2);
+            for (int i = 0; i < elements*2-1; i++)
+            {
+                randomLinesList.Add(new LineModel(randomPointsList[i], randomPointsList[i+1]));
+                i++;
+            }
+            return randomLinesList;
         }
     }
 }

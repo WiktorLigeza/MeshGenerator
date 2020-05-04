@@ -23,6 +23,7 @@ namespace GeoMeshGUI
         int _x, _y, x, y;
         List<LineModel> links = new List<LineModel>();
         List<PointModel> matrix = new List<PointModel>();
+        List<LineModel> walls;
         QTnode rootNode;
         QTnodeTriangle rootNode_Triangle;
         public Cockpit()
@@ -34,7 +35,6 @@ namespace GeoMeshGUI
             _x = 50;
             _y = 50;
         }
-
         //graph rel
         Graphics g = null;
         Pen axis = new Pen(Color.DeepPink);
@@ -78,11 +78,11 @@ namespace GeoMeshGUI
                 Engine.onlyFigure_Triangle(rootNode_Triangle, bmp, false); //only fig
                 putSubdivision_Triangle(rootNode_Triangle, 0, "pink");
             }
-
-            if(raycasting)
+            if (raycasting)
             {
-                e.Graphics.FillEllipse(Brushes.Cyan, mouse_x, mouse_y, 7, 7);
+                putRaycasting();
             }
+            else set = true;
             
         }
         private Pen setPenColor(string color)
@@ -200,23 +200,27 @@ namespace GeoMeshGUI
             //set color
             if (color == "green")
             {
-                NewLinePen = new Pen(Color.Green, 2);
+                NewLinePen = new Pen(Color.Green, 1);
             }
             else if (color == "red")
             {
-                NewLinePen = new Pen(Color.Red, 2);
+                NewLinePen = new Pen(Color.Red, 1);
             }
             else if (color == "pink")
             {
-                NewLinePen = new Pen(Color.DeepPink, 2);
+                NewLinePen = new Pen(Color.DeepPink, 1);
             }
             else if (color == "gray")
             {
-                NewLinePen = new Pen(Color.LightGray, 2);
+                NewLinePen = new Pen(Color.LightGray, 1);
+            }
+            else if (color == "white")
+            {
+                NewLinePen = new Pen(Color.AntiqueWhite, 1);
             }
             else
             {
-                NewLinePen = new Pen(Color.Black, 2);
+                NewLinePen = new Pen(Color.Black, 1);
             }
 
             //draw line
@@ -353,23 +357,23 @@ namespace GeoMeshGUI
                 new Point((int)root.triaDown.origin.x, (int)root.triaDown.origin.y),
                     new Point((int)root.triaDown.origin.x - (int)root.triaDown.width, (int)root.triaDown.origin.y),
                     new Point((int)root.triaDown.origin.x, (int)root.triaDown.origin.y - (int)root.triaDown.height) };
-            g.DrawPolygon(new Pen(Color.Cyan, 1), triangleDown);
+                g.DrawPolygon(new Pen(Color.Cyan, 1), triangleDown);
 
 
-            //matrix
-            //g.FillEllipse(
-            //Brushes.Cyan,
-            //(float)(float)root.triaDown.origin.x - 1,
-            // (float)root.triaDown.origin.y - 1,
-            // 2,
-            // 2);
-            //         g.FillEllipse(
-            //Brushes.BlueViolet,
-            //(float)(float)root.triaUp.origin.x - 1,
-            // (float)root.triaUp.origin.y - 1,
-            // 2,
-            // 2);
-        }
+                //matrix
+                //g.FillEllipse(
+                //Brushes.Cyan,
+                //(float)(float)root.triaDown.origin.x - 1,
+                // (float)root.triaDown.origin.y - 1,
+                // 2,
+                // 2);
+                //         g.FillEllipse(
+                //Brushes.BlueViolet,
+                //(float)(float)root.triaUp.origin.x - 1,
+                // (float)root.triaUp.origin.y - 1,
+                // 2,
+                // 2);
+            }
 
 
 
@@ -382,6 +386,47 @@ namespace GeoMeshGUI
             if (root.n4 != null)
                 putSubdivision_Triangle(root.n4, delay, color);
         }
+
+        public void putRaycasting()
+        {
+            PointModel mouse_position = new PointModel(mouse_x, -1 * (mouse_y - graph.Height));
+            LineModel rayGen = new LineModel(mouse_position, new PointModel(mouse_x + 500, -1 * (mouse_y - graph.Height)));
+
+            foreach (LineModel wall in walls)
+            {
+                g.DrawLine(
+                new Pen(Color.Black, 3),
+               (float)wall.A.x + center_x + 3,
+               -1 * (float)wall.A.y - center_y + 3,
+              (float)wall.B.x + center_x + 3,
+                -1 * (float)wall.B.y - center_y + 3);
+                
+            }
+
+            for (int i = 0; i <= 360; i += 3)
+            {
+                LineModel ray = Engine.LineRotation(rayGen, i);
+                //PointModel p = null;
+                foreach (LineModel wall in walls)
+                {
+                    PointModel c = Engine.cast(ray, wall);
+                    if(c !=null )
+                    {
+                        ray.B = c;
+                    }
+
+                }
+                //draw ray
+                    g.DrawLine(
+                    new Pen(Color.BlanchedAlmond, 1),
+                   (float)ray.A.x + center_x + 3,
+                   -1 * (float)ray.A.y - center_y + 3,
+                  (float)ray.B.x + center_x + 3,
+                    -1 * (float)ray.B.y - center_y + 3);
+            }
+          
+        }
+
         //-------------------------------------------------------------------------------------------------------------------------------------\\GRAPH
 
 
@@ -504,9 +549,9 @@ namespace GeoMeshGUI
         private void RHOMBULARbutton_Click(object sender, EventArgs e)
         {
             raycasting = false;
+            graph.Refresh();
             if (validate())
             {
-                graph.Refresh();
                 List<PointModel> PolygonVertices = new List<PointModel>();
                 // dummy rhombus
                 PolygonVertices.Add(new PointModel(100, 100));
@@ -532,9 +577,9 @@ namespace GeoMeshGUI
         private void TRAPEZOIDALbutton_Click(object sender, EventArgs e)
         {
             raycasting = false;
+            graph.Refresh();
             if (validate())
             {
-                graph.Refresh();
                 List<PointModel> PolygonVertices = new List<PointModel>();
                 // dummy rhombus
                 PolygonVertices.Add(new PointModel(100, 100));
@@ -595,6 +640,23 @@ namespace GeoMeshGUI
                 putMatrix(matrix,5);
             }
         }
+
+        private void RAYCASTINGutton_Click_1(object sender, EventArgs e)
+        {
+            raycasting = true;
+            set = false;
+            walls = Engine.generateRandomLines(3);
+            //List<LineModel> bounds = new List<LineModel>
+            //{ 
+            //    (new LineModel(new PointModel(0, 0), new PointModel(0, graph.Height-6))),
+            //    (new LineModel(new PointModel(0, graph.Height-6), new PointModel(graph.Width-6, graph.Height-6))),
+            //    (new LineModel(new PointModel(graph.Width-6, graph.Height-6), new PointModel(graph.Width-6, 0))),
+            //    (new LineModel(new PointModel(graph.Width-6, 0), new PointModel(0, 0))),
+
+            //};
+            //walls.AddRange(bounds);
+
+        }
         //-------------------------------------------------------------------------------------------------------------------------------------\\BUTTONS
 
 
@@ -626,12 +688,6 @@ namespace GeoMeshGUI
                 graph.Refresh();
             }
         }
-
-        private void RAYCASTINGutton_Click_1(object sender, EventArgs e)
-        {
-            raycasting = true;
-        }
-
         public void refreshGraph(bool setGraph,bool setQ)
         {
             set = setGraph;
@@ -642,7 +698,7 @@ namespace GeoMeshGUI
             raycasting = false;
         }
 
-        }
+    }
 
         //-------------------------------------------------------------------------------------------------------------------------------------\\ACTION
     

@@ -54,7 +54,7 @@
             // tmrMoving
             // 
             this.tmrMoving.Enabled = true;
-            this.tmrMoving.Interval = 50;
+            this.tmrMoving.Interval = 1;
             this.tmrMoving.Tick += new System.EventHandler(this.tmrMoving_Tick);
             // 
             // graph
