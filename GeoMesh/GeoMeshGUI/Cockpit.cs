@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,6 +35,7 @@ namespace GeoMeshGUI
             center_y = (graph.Height / 2) +3;
             _x = 50;
             _y = 50;
+            origin = graph.BackColor;
         }
         //graph rel
         Graphics g = null;
@@ -42,10 +44,13 @@ namespace GeoMeshGUI
         Pen blueLine = new Pen(Color.LightBlue);
         Pen grayLine = new Pen(Color.Gray);
         Image image;
+        Color origin;
         bool set = true;
         bool setQT = false; //quad tree rect
         bool setQTT = false; // quad tree tria
+        bool setQTP = false; //quad tree by points
         bool raycasting = false;
+        List<PointModel> pointsQTP;
         //-------------------------------------------------------------------------------------------------------------------------------------\\INIT
 
 
@@ -78,11 +83,15 @@ namespace GeoMeshGUI
                 Engine.onlyFigure_Triangle(rootNode_Triangle, bmp, false); //only fig
                 putSubdivision_Triangle(rootNode_Triangle, 0, "pink");
             }
+            if (setQTP)
+            {
+                putSubdivision_ByPoints(pointsQTP);
+            }
+            else 
             if (raycasting)
             {
                 putRaycasting();
             }
-            else set = true;
             
         }
         private Pen setPenColor(string color)
@@ -114,6 +123,7 @@ namespace GeoMeshGUI
 
         public void setGraph()
         {
+            graph.BackColor = origin;
             axis.Width = 2;
             g.DrawLine(axis, 3, graph.Height - 3, graph.Width - 3, graph.Height - 3); //x
             g.DrawLine(axis, 3, 3, 3, graph.Height - 3); //y
@@ -316,12 +326,12 @@ namespace GeoMeshGUI
                    (float)root.rect.width, (float)root.rect.height);
 
                 //matrix
-                g.FillEllipse(
-            Brushes.Cyan,
-            (float)(float)root.rect.origin.x-1,
-             (float)root.rect.origin.y-1,
-             2,
-             2);
+            //    g.FillEllipse(
+            //Brushes.Cyan,
+            //(float)(float)root.rect.origin.x-1,
+            // (float)root.rect.origin.y-1,
+            // 2,
+            // 2);
             }
             
 
@@ -427,6 +437,22 @@ namespace GeoMeshGUI
           
         }
 
+        public void putSubdivision_ByPoints(List<PointModel> points)
+        {
+            Rectangle rect = new Rectangle(0, 0, graph.Width, graph.Height);
+            g.FillRectangle(Brushes.Black, rect);
+            foreach (PointModel point in points)
+            {
+                g.FillEllipse(
+                      Brushes.DeepPink,
+                      (float)point.x - 1,
+                       (float)point.y - 1,
+                       3, 3);
+            }
+            rootNode = Engine.quadTreeGenerator_ByPoint(points, graph.Width, graph.Height, 3);
+            putSubdivision(rootNode, 0, "cyan");
+
+        }
         //-------------------------------------------------------------------------------------------------------------------------------------\\GRAPH
 
 
@@ -470,6 +496,7 @@ namespace GeoMeshGUI
         private void QTbutton_Click(object sender, EventArgs e)
         {
             raycasting = false;
+            setQTP = false;
             try
             {
                 rootNode = null;
@@ -508,6 +535,7 @@ namespace GeoMeshGUI
         private void QTTbutton_Click(object sender, EventArgs e)
         {
             raycasting = false;
+            setQTP = false;
             try
             {
                 rootNode_Triangle = null;
@@ -543,12 +571,20 @@ namespace GeoMeshGUI
                 msg.Show();
             }
         }
+        private void QTPbutton_Click(object sender, EventArgs e)
+        {
+            setQTP = true;
+            set = false;
+            pointsQTP = Engine.generateRandomPoints(200);
+            graph.Refresh();
 
+        }
 
         // test
         private void RHOMBULARbutton_Click(object sender, EventArgs e)
         {
             raycasting = false;
+            setQTP = false;
             graph.Refresh();
             if (validate())
             {
@@ -577,6 +613,7 @@ namespace GeoMeshGUI
         private void TRAPEZOIDALbutton_Click(object sender, EventArgs e)
         {
             raycasting = false;
+            setQTP = false;
             graph.Refresh();
             if (validate())
             {
@@ -599,6 +636,45 @@ namespace GeoMeshGUI
 
                 putPolygon(PolygonVertices, "cyan");
                 putMatrix(matrix, 0);
+            }
+        }
+
+        private void RAYCASTINGutton_Click_1(object sender, EventArgs e)
+        {
+            raycasting = true;
+            set = false;
+            walls = Engine.generateRandomLines(3);
+            //List<LineModel> bounds = new List<LineModel>
+            //{ 
+            //    (new LineModel(new PointModel(0, 0), new PointModel(0, graph.Height-6))),
+            //    (new LineModel(new PointModel(0, graph.Height-6), new PointModel(graph.Width-6, graph.Height-6))),
+            //    (new LineModel(new PointModel(graph.Width-6, graph.Height-6), new PointModel(graph.Width-6, 0))),
+            //    (new LineModel(new PointModel(graph.Width-6, 0), new PointModel(0, 0))),
+
+            //};
+            //walls.AddRange(bounds);
+
+        }
+
+        private void DITHERINGbutton1_Click(object sender, EventArgs e)
+        {
+            raycasting = false;
+            setQTP = false;
+            rootNode = null;
+            refreshGraph(false, false);
+
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Filter = "Image files (*.jpg, *.jpeg, *.jpe, *.jfif, *.png) | *.jpg; *.jpeg; *.jpe; *.jfif; *.png";
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                // get path
+                var filePath = dialog.FileName;
+
+                //result
+                graph.BackgroundImage = Engine.dithering_GenerateMatrix(Image.FromFile(filePath));
+                graph.Refresh();
+
+
             }
         }
 
@@ -641,22 +717,15 @@ namespace GeoMeshGUI
             }
         }
 
-        private void RAYCASTINGutton_Click_1(object sender, EventArgs e)
-        {
-            raycasting = true;
-            set = false;
-            walls = Engine.generateRandomLines(3);
-            //List<LineModel> bounds = new List<LineModel>
-            //{ 
-            //    (new LineModel(new PointModel(0, 0), new PointModel(0, graph.Height-6))),
-            //    (new LineModel(new PointModel(0, graph.Height-6), new PointModel(graph.Width-6, graph.Height-6))),
-            //    (new LineModel(new PointModel(graph.Width-6, graph.Height-6), new PointModel(graph.Width-6, 0))),
-            //    (new LineModel(new PointModel(graph.Width-6, 0), new PointModel(0, 0))),
+     
 
-            //};
-            //walls.AddRange(bounds);
 
-        }
+
+
+
+
+
+
         //-------------------------------------------------------------------------------------------------------------------------------------\\BUTTONS
 
 
@@ -681,6 +750,14 @@ namespace GeoMeshGUI
             return output;
         }
 
+        private void graph_MouseDown(object sender, MouseEventArgs e)
+        {
+            pointsQTP.Add(new PointModel(mouse_x,mouse_y));
+            graph.Refresh();
+        }
+
+     
+
         private void tmrMoving_Tick(object sender, EventArgs e)
         {
             if (raycasting)
@@ -688,6 +765,28 @@ namespace GeoMeshGUI
                 graph.Refresh();
             }
         }
+
+        private void tmrQTP_Tick(object sender, EventArgs e)
+        {
+            if (setQTP)
+            {
+                tmrQTP.Interval = 100;
+                Random random = new Random();
+                foreach (PointModel point in pointsQTP)
+                {
+                    int direction = random.Next(0, 4);
+                    switch (direction)
+                    {
+                        case 1:{ point.x += random.Next(0, 10); break; } 
+                        case 2:{ point.y += random.Next(0, 10); break; } 
+                        case 3:{ point.x -= random.Next(0, 10); break; } 
+                        case 4:{ point.y -= random.Next(0, 10); break; } 
+                    }
+                }
+                graph.Refresh();
+            }
+        }
+
         public void refreshGraph(bool setGraph,bool setQ)
         {
             set = setGraph;

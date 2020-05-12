@@ -49,6 +49,9 @@
             this.QTbutton = new System.Windows.Forms.RadioButton();
             this.RAYCASTINGutton = new System.Windows.Forms.RadioButton();
             this.QTTbutton = new System.Windows.Forms.RadioButton();
+            this.tmrQTP = new System.Windows.Forms.Timer(this.components);
+            this.QTPbutton = new System.Windows.Forms.RadioButton();
+            this.DITHERINGbutton1 = new System.Windows.Forms.RadioButton();
             this.SuspendLayout();
             // 
             // tmrMoving
@@ -67,6 +70,7 @@
             this.graph.Size = new System.Drawing.Size(567, 376);
             this.graph.TabIndex = 8;
             this.graph.Paint += new System.Windows.Forms.PaintEventHandler(this.graph_Paint);
+            this.graph.MouseDown += new System.Windows.Forms.MouseEventHandler(this.graph_MouseDown);
             this.graph.MouseMove += new System.Windows.Forms.MouseEventHandler(this.graph_MouseMove);
             // 
             // labelAxis
@@ -109,7 +113,7 @@
             this.RHOMBULARbutton.AutoSize = true;
             this.RHOMBULARbutton.BackColor = System.Drawing.Color.Transparent;
             this.RHOMBULARbutton.ForeColor = System.Drawing.Color.Fuchsia;
-            this.RHOMBULARbutton.Location = new System.Drawing.Point(935, 312);
+            this.RHOMBULARbutton.Location = new System.Drawing.Point(936, 337);
             this.RHOMBULARbutton.Name = "RHOMBULARbutton";
             this.RHOMBULARbutton.Size = new System.Drawing.Size(80, 17);
             this.RHOMBULARbutton.TabIndex = 13;
@@ -122,7 +126,7 @@
             this.TRAPEZOIDALbutton.AutoSize = true;
             this.TRAPEZOIDALbutton.BackColor = System.Drawing.Color.Transparent;
             this.TRAPEZOIDALbutton.ForeColor = System.Drawing.Color.Fuchsia;
-            this.TRAPEZOIDALbutton.Location = new System.Drawing.Point(935, 335);
+            this.TRAPEZOIDALbutton.Location = new System.Drawing.Point(936, 360);
             this.TRAPEZOIDALbutton.Name = "TRAPEZOIDALbutton";
             this.TRAPEZOIDALbutton.Size = new System.Drawing.Size(83, 17);
             this.TRAPEZOIDALbutton.TabIndex = 14;
@@ -148,7 +152,7 @@
             this.label2.AutoSize = true;
             this.label2.BackColor = System.Drawing.Color.Transparent;
             this.label2.ForeColor = System.Drawing.Color.Fuchsia;
-            this.label2.Location = new System.Drawing.Point(935, 296);
+            this.label2.Location = new System.Drawing.Point(936, 321);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(152, 13);
             this.label2.TabIndex = 16;
@@ -253,7 +257,7 @@
             this.RAYCASTINGutton.AutoSize = true;
             this.RAYCASTINGutton.BackColor = System.Drawing.Color.Transparent;
             this.RAYCASTINGutton.ForeColor = System.Drawing.Color.Fuchsia;
-            this.RAYCASTINGutton.Location = new System.Drawing.Point(935, 358);
+            this.RAYCASTINGutton.Location = new System.Drawing.Point(936, 383);
             this.RAYCASTINGutton.Name = "RAYCASTINGutton";
             this.RAYCASTINGutton.Size = new System.Drawing.Size(121, 17);
             this.RAYCASTINGutton.TabIndex = 25;
@@ -274,12 +278,46 @@
             this.QTTbutton.UseVisualStyleBackColor = false;
             this.QTTbutton.Click += new System.EventHandler(this.QTTbutton_Click);
             // 
+            // tmrQTP
+            // 
+            this.tmrQTP.Enabled = true;
+            this.tmrQTP.Interval = 1;
+            this.tmrQTP.Tick += new System.EventHandler(this.tmrQTP_Tick);
+            // 
+            // QTPbutton
+            // 
+            this.QTPbutton.AutoSize = true;
+            this.QTPbutton.BackColor = System.Drawing.Color.Transparent;
+            this.QTPbutton.ForeColor = System.Drawing.Color.Fuchsia;
+            this.QTPbutton.Location = new System.Drawing.Point(939, 280);
+            this.QTPbutton.Name = "QTPbutton";
+            this.QTPbutton.Size = new System.Drawing.Size(172, 17);
+            this.QTPbutton.TabIndex = 27;
+            this.QTPbutton.Text = "Q U A D T R E E (BY-POINTS)";
+            this.QTPbutton.UseVisualStyleBackColor = false;
+            this.QTPbutton.Click += new System.EventHandler(this.QTPbutton_Click);
+            // 
+            // DITHERINGbutton1
+            // 
+            this.DITHERINGbutton1.AutoSize = true;
+            this.DITHERINGbutton1.BackColor = System.Drawing.Color.Transparent;
+            this.DITHERINGbutton1.ForeColor = System.Drawing.Color.Fuchsia;
+            this.DITHERINGbutton1.Location = new System.Drawing.Point(936, 406);
+            this.DITHERINGbutton1.Name = "DITHERINGbutton1";
+            this.DITHERINGbutton1.Size = new System.Drawing.Size(109, 17);
+            this.DITHERINGbutton1.TabIndex = 28;
+            this.DITHERINGbutton1.Text = "D I T H E R I N G";
+            this.DITHERINGbutton1.UseVisualStyleBackColor = false;
+            this.DITHERINGbutton1.Click += new System.EventHandler(this.DITHERINGbutton1_Click);
+            // 
             // Cockpit
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.ClientSize = new System.Drawing.Size(1176, 697);
+            this.Controls.Add(this.DITHERINGbutton1);
+            this.Controls.Add(this.QTPbutton);
             this.Controls.Add(this.QTTbutton);
             this.Controls.Add(this.RAYCASTINGutton);
             this.Controls.Add(this.QTbutton);
@@ -327,6 +365,8 @@
         private System.Windows.Forms.RadioButton RAYCASTINGutton;
         private System.Windows.Forms.RadioButton QTTbutton;
         private System.Windows.Forms.Timer tmrMoving;
-
+        private System.Windows.Forms.Timer tmrQTP;
+        private System.Windows.Forms.RadioButton QTPbutton;
+        private System.Windows.Forms.RadioButton DITHERINGbutton1;
     }
 }

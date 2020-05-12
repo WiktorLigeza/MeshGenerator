@@ -359,7 +359,6 @@ namespace GeoMeshGUI
                 }
 
             }
-
         }
 
         static bool checkFill(RectangleModel rect, Bitmap bmp)
@@ -838,6 +837,84 @@ namespace GeoMeshGUI
         //-------------------------------------------------------------------------------------------------------------------------------------\\QUAD TREE TRIANGLE
 
 
+
+        //***************************** QUAD TREE BY POINTS **************************\\
+
+        public static QTnode quadTreeGenerator_ByPoint(List<PointModel> points, double width, double height, double tol)
+        {
+            //init
+            QTnode rootNode = new QTnode(new RectangleModel(new PointModel(0, 0), width, height), null, null, null, null);
+
+            subDivide_ByPoint( rootNode, tol, points);
+            return rootNode;
+        }
+
+        static void subDivide_ByPoint(QTnode root, double tol, List<PointModel> points)
+        {
+            root.points = checkFill_ByPoint(root.rect, points);
+            if (root.points.Count > 4)
+            {
+
+                double width = root.rect.width / 2;
+                double height = root.rect.height / 2;
+
+                if (width > tol && height > tol )
+                {
+
+                    QTnode n1 = new QTnode(new RectangleModel(new PointModel(root.rect.origin.x, root.rect.origin.y), width, height), null, null, null, null);
+                    QTnode n2 = new QTnode(new RectangleModel(new PointModel(root.rect.origin.x + width, root.rect.origin.y), width, height), null, null, null, null);
+                    QTnode n3 = new QTnode(new RectangleModel(new PointModel(root.rect.origin.x, root.rect.origin.y + height), width, height), null, null, null, null);
+                    QTnode n4 = new QTnode(new RectangleModel(new PointModel(root.rect.origin.x + width, root.rect.origin.y + height), width, height), null, null, null, null);
+
+                    root.n1 = n1;
+                    root.n2 = n2;
+                    root.n3 = n3;
+                    root.n4 = n4;
+
+                    subDivide_ByPoint(n1, tol, points);
+                    subDivide_ByPoint(n2, tol, points);
+                    subDivide_ByPoint(n3, tol, points);
+                    subDivide_ByPoint(n4, tol, points);
+                }
+
+            }
+
+        }
+
+        static List<PointModel> checkFill_ByPoint(RectangleModel rect, List<PointModel> points)
+        {
+            List<PointModel> output = new List<PointModel>();
+
+            foreach (PointModel point in points)
+            {
+                if ((point.x >= (int)rect.origin.x) && (point.x <= ((int)rect.origin.x + rect.width)) &&
+                 (point.y >= (int)rect.origin.y) && (point.y <= ((int)rect.origin.y + rect.height)))
+                {
+                    output.Add(point);
+                }
+            }
+
+            //for (int wi = (int)rect.origin.x; wi < (rect.origin.x + rect.width); wi++)
+            //{
+            //    for (int hi = (int)rect.origin.y; hi < (rect.origin.y + rect.height); hi++)
+            //    {
+            //        foreach(PointModel point in points)
+            //        {
+            //            if (point.x == wi && point.y == hi)
+            //            {
+            //                output.Add(point);
+            //            }
+            //        }
+            //    }
+            //}
+            return output;
+        }
+
+        //-------------------------------------------------------------------------------------------------------------------------------------\\QUAD TREE BY POINTS
+
+
+
+
         //***************************** RAYCASTING **************************\\
         public static PointModel cast (LineModel l1,LineModel l2)
         {
@@ -967,5 +1044,90 @@ namespace GeoMeshGUI
             }
             return randomLinesList;
         }
+        //-------------------------------------------------------------------------------------------------------------------------------------\\RAYCASTING
+
+        //***************************** DITHERING **************************\\
+        public static Bitmap dithering_GenerateMatrix(Image image)
+        {
+            int width = image.Width;
+            int height = image.Height;
+            Bitmap bmp = new Bitmap(image);
+            for (int y = 0; y < height - 1; y++)
+            {
+                for (int x = 1; x < width - 1; x++)
+                {
+                    Color pix = bmp.GetPixel(x, y);
+                    int oldR = pix.R;
+                    int oldG = pix.G;
+                    int oldB = pix.B;
+                    int factor = 2;
+                    int newR = (int)(factor * oldR / 255) * (255 / factor);
+                    int newG = (int)(factor * oldG / 255) * (255 / factor);
+                    int newB = (int)(factor * oldB / 255) * (255 / factor);
+                    bmp.SetPixel(x, y, Color.FromArgb(newR, newG, newB));
+
+                    float errR = oldR - newR;
+                    float errG = oldG - newG;
+                    float errB = oldB - newB;
+
+
+                    Color c = bmp.GetPixel(x + 1, y);
+                    float r = c.R;
+                    float g = c.G;
+                    float b = c.B;
+                    r = (r + errR * 7 / 16);
+                    g = (g + errG * 7 / 16);
+                    b = (b + errB * 7 / 16);
+                    if(r<=255 && g<=255 && b<=255)
+                    {
+                        bmp.SetPixel(x + 1, y, Color.FromArgb((int)r, (int)g, (int)b));
+                    }
+                    
+
+
+                    c = bmp.GetPixel(x - 1, y + 1);
+                    r = c.R;
+                    g = c.G;
+                    b = c.B;
+                    r = (r + errR * 3 / 16);
+                    g = (g + errG * 3 / 16);
+                    b = (b + errB * 3 / 16);
+                    if (r <= 255 && g <= 255 && b <= 255)
+                    {
+                        bmp.SetPixel(x - 1, y + 1, Color.FromArgb((int)r, (int)g, (int)b));
+                    }
+
+                    c = bmp.GetPixel(x, y + 1);
+                    r = c.R;
+                    g = c.G;
+                    b = c.B;
+                    r = (r + errR * 5 / 16);
+                    g = (g + errG * 5 / 16);
+                    b = (b + errB * 5 / 16);
+                    if (r <= 255 && g <= 255 && b <= 255)
+                    {
+                        bmp.SetPixel(x, y + 1, Color.FromArgb((int)r, (int)g, (int)b));
+                    }
+
+
+                    c = bmp.GetPixel(x + 1, y + 1);
+                    r = c.R;
+                    g = c.G;
+                    b = c.B;
+                    r = (r + errR * 1 / 16);
+                    g = (g + errG * 1 / 16);
+                    b = (b + errB * 1 / 16);
+                    if (r <= 255 && g <= 255 && b <= 255)
+                    {
+                        bmp.SetPixel(x + 1, y + 1, Color.FromArgb((int)r, (int)g, (int)b));
+                    }
+                }
+            }
+            return bmp;
+        }
+        //-------------------------------------------------------------------------------------------------------------------------------------\\RAYCASTING
     }
+
+
+
 }

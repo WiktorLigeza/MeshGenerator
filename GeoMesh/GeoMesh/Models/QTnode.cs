@@ -12,10 +12,13 @@ namespace GeoMesh.Models
         public QTnode n4;
         public RectangleModel rect;
 
+        public List<PointModel> points;
+
 
         public QTnode(RectangleModel rect, QTnode n1, QTnode n2, QTnode n3, QTnode n4)
         {
             this.rect = rect;
+            this.points = new List<PointModel>();
 
             this.n1 = n1;
             this.n2 = n2;
