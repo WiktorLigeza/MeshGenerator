@@ -21,6 +21,8 @@ namespace GeoMeshGUI
         float center_y;
         float mouse_x;
         float mouse_y;
+        int w;
+        int h;
         int _x, _y, x, y;
         List<LineModel> links = new List<LineModel>();
         List<PointModel> matrix = new List<PointModel>();
@@ -36,6 +38,8 @@ namespace GeoMeshGUI
             _x = 50;
             _y = 50;
             origin = graph.BackColor;
+            w = graph.Width;
+            h = graph.Height;
         }
         //graph rel
         Graphics g = null;
@@ -49,6 +53,7 @@ namespace GeoMeshGUI
         bool setQT = false; //quad tree rect
         bool setQTT = false; // quad tree tria
         bool setQTP = false; //quad tree by points
+        bool setQTS = false; //quad tree by seed
         bool raycasting = false;
         List<PointModel> pointsQTP;
         //-------------------------------------------------------------------------------------------------------------------------------------\\INIT
@@ -63,7 +68,7 @@ namespace GeoMeshGUI
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void graph_Paint(object sender, PaintEventArgs e)
-        {
+        { 
             g = graph.CreateGraphics();
             if (set) { setGraph(); }
             if (setQT)
@@ -72,7 +77,7 @@ namespace GeoMeshGUI
                 Bitmap bmp = new Bitmap(image);
 
                 ///rect
-                Engine.onlyFigure(rootNode, bmp, false); //only fig
+                //Engine.onlyFigure(rootNode, bmp, false); //only fig
                 // Engine.deleteRedundant(rootNode, bmp); 
                 putSubdivision(rootNode, 0, "pink");
             }
@@ -405,7 +410,7 @@ namespace GeoMeshGUI
             foreach (LineModel wall in walls)
             {
                 g.DrawLine(
-                new Pen(Color.Black, 3),
+                new Pen(Color.DeepPink, 3),
                (float)wall.A.x + center_x + 3,
                -1 * (float)wall.A.y - center_y + 3,
               (float)wall.B.x + center_x + 3,
@@ -428,13 +433,13 @@ namespace GeoMeshGUI
                 }
                 //draw ray
                     g.DrawLine(
-                    new Pen(Color.BlanchedAlmond, 1),
+                    new Pen(Color.Cyan, 1),
                    (float)ray.A.x + center_x + 3,
                    -1 * (float)ray.A.y - center_y + 3,
                   (float)ray.B.x + center_x + 3,
                     -1 * (float)ray.B.y - center_y + 3);
             }
-          
+            //System.Threading.Thread.Sleep(100);
         }
 
         public void putSubdivision_ByPoints(List<PointModel> points)
@@ -452,6 +457,37 @@ namespace GeoMeshGUI
             rootNode = Engine.quadTreeGenerator_ByPoint(points, graph.Width, graph.Height, 3);
             putSubdivision(rootNode, 0, "cyan");
 
+        }
+
+        void putConvexHull(List<PointModel> list)
+        {
+            LineModel line = new LineModel(new PointModel(0,0), new PointModel(0, 0));
+
+            //set initial
+            list.Sort((a, b) => a.x == b.x ? a.y.CompareTo(b.y) : a.x.CompareTo(b.x));
+
+            double initialX = list[0].x;
+            double initialY = list[0].y;
+            List<PointModel> hull = Engine.GetHull(list);
+            for (int i = 0; i < hull.Count - 1; i++)
+            {
+                line.A = hull[i];
+                line.B = hull[i + 1];
+                g.DrawLine(
+                new Pen(Color.DeepPink, 3),
+               (float)line.A.x + center_x + 3,
+               -1 * (float)line.A.y - center_y + 3,
+              (float)line.B.x + center_x + 3,
+                -1 * (float)line.B.y - center_y + 3);
+            }
+            line.A = hull[0];
+            line.B = hull[hull.Count - 1];
+            g.DrawLine(
+            new Pen(Color.DeepPink, 3),
+           (float)line.A.x + center_x + 3,
+           -1 * (float)line.A.y - center_y + 3,
+          (float)line.B.x + center_x + 3,
+            -1 * (float)line.B.y - center_y + 3);
         }
         //-------------------------------------------------------------------------------------------------------------------------------------\\GRAPH
 
@@ -493,6 +529,7 @@ namespace GeoMeshGUI
             }
         }
 
+        // QT
         private void QTbutton_Click(object sender, EventArgs e)
         {
             raycasting = false;
@@ -532,6 +569,7 @@ namespace GeoMeshGUI
                 msg.Show();
             }
         }
+
         private void QTTbutton_Click(object sender, EventArgs e)
         {
             raycasting = false;
@@ -571,13 +609,50 @@ namespace GeoMeshGUI
                 msg.Show();
             }
         }
+
         private void QTPbutton_Click(object sender, EventArgs e)
         {
+            graph.BackColor = Color.Black;
             setQTP = true;
             set = false;
             pointsQTP = Engine.generateRandomPoints(200);
             graph.Refresh();
 
+        }
+
+        private void SEEDbutton1_Click(object sender, EventArgs e)
+        {
+            raycasting = false;
+            setQTP = false;
+            try
+            {
+                refreshGraph(false, false);
+
+                OpenFileDialog dialog = new OpenFileDialog();
+                dialog.Filter = "Image files (*.jpg, *.jpeg, *.jpe, *.jfif, *.png, *.bmp) | *.jpg; *.jpeg; *.jpe; *.jfif; *.png; *.bmp;";
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    CustomMessageBox tol = new CustomMessageBox("cilck on seed");
+                    if (tol.ShowDialog() == DialogResult.OK)
+                    {
+                    }
+
+                    // get path
+                    var filePath = dialog.FileName;
+
+                    //add picture
+                    image = Image.FromFile(filePath);
+                    graph.Width = image.Width;
+                    graph.Height = image.Height;
+                    graph.BackgroundImage = image;
+                    setQTS = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox msg = new CustomMessageBox(ex.ToString());
+                msg.Show();
+            }
         }
 
         // test
@@ -641,6 +716,7 @@ namespace GeoMeshGUI
 
         private void RAYCASTINGutton_Click_1(object sender, EventArgs e)
         {
+            graph.BackColor = Color.Black;
             raycasting = true;
             set = false;
             walls = Engine.generateRandomLines(3);
@@ -671,10 +747,9 @@ namespace GeoMeshGUI
                 var filePath = dialog.FileName;
 
                 //result
-                graph.BackgroundImage = Engine.dithering_GenerateMatrix(Image.FromFile(filePath));
+                (List<PointModel> matrix, Bitmap bmp)  = Engine.dithering_GenerateMatrix(Image.FromFile(filePath),graph.Width,graph.Height);
+                graph.BackgroundImage = bmp;
                 graph.Refresh();
-
-
             }
         }
 
@@ -730,7 +805,7 @@ namespace GeoMeshGUI
 
 
 
-        //***************************** ACTION **************************\\
+        //***************************** ACTION && TIMERS **************************\\
         bool validate()
         {
             bool output = true;
@@ -752,12 +827,48 @@ namespace GeoMeshGUI
 
         private void graph_MouseDown(object sender, MouseEventArgs e)
         {
-            pointsQTP.Add(new PointModel(mouse_x,mouse_y));
-            graph.Refresh();
+            if (setQTP)
+            {
+                pointsQTP.Add(new PointModel(mouse_x, mouse_y));
+                graph.Refresh();
+            }
+            if(setQTS)
+            {
+                Image im = graph.BackgroundImage;
+                graph.Width = im.Width;
+                graph.Height = im.Height;
+
+                Bitmap bmp = new Bitmap(image);
+                Color pixColor = bmp.GetPixel(e.X, e.Y);
+                
+
+                rootNode = Engine.quadTreeGenerator_Seed(bmp, im.Width, im.Height, 3, pixColor); //rectangle
+               // Engine.deleteRedundant_Seed(rootNode, bmp, pixColor);
+                graph.Refresh();
+
+                putSubdivision(rootNode, 0, "red");
+
+            }
         }
 
-     
+        public void refreshGraph(bool setGraph,bool setQ)
+        {
+            set = setGraph;
+            setQT = setQ;
+            setQTT = setQ;
+            setQTP = false;
+            setQTS = false;
 
+            graph.Width = w;
+            graph.Height = h;
+
+            graph.Refresh();
+            graph.BackgroundImage = null;
+            raycasting = false;
+            graph.BackColor = Color.BlueViolet;
+        }
+
+        //timers
         private void tmrMoving_Tick(object sender, EventArgs e)
         {
             if (raycasting)
@@ -770,35 +881,24 @@ namespace GeoMeshGUI
         {
             if (setQTP)
             {
-                tmrQTP.Interval = 100;
+                tmrQTP.Interval = 1000;
                 Random random = new Random();
                 foreach (PointModel point in pointsQTP)
                 {
                     int direction = random.Next(0, 4);
                     switch (direction)
                     {
-                        case 1:{ point.x += random.Next(0, 10); break; } 
-                        case 2:{ point.y += random.Next(0, 10); break; } 
-                        case 3:{ point.x -= random.Next(0, 10); break; } 
-                        case 4:{ point.y -= random.Next(0, 10); break; } 
+                        case 1: { point.x += random.Next(0, 10); break; }
+                        case 2: { point.y += random.Next(0, 10); break; }
+                        case 3: { point.x -= random.Next(0, 10); break; }
+                        case 4: { point.y -= random.Next(0, 10); break; }
                     }
                 }
                 graph.Refresh();
             }
         }
 
-        public void refreshGraph(bool setGraph,bool setQ)
-        {
-            set = setGraph;
-            setQT = setQ;
-            setQTT = setQ;
-            graph.Refresh();
-            graph.BackgroundImage = null;
-            raycasting = false;
-        }
-
     }
-
         //-------------------------------------------------------------------------------------------------------------------------------------\\ACTION
     
 }

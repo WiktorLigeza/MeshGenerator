@@ -548,7 +548,134 @@ namespace GeoMeshGUI
         }
         //-------------------------------------------------------------------------------------------------------------------------------------\\QUAD TREE RECTANGLE
 
+        //***************************** QUAD TREE RECTANGLE **************************\\
+        public static QTnode quadTreeGenerator_Seed(Image image, double width, double height, double tol, Color color)
+        {
+            //init
+            Bitmap bmp = new Bitmap(image);
+            QTnode rootNode = new QTnode(new RectangleModel(new PointModel(0, 0), width, height), null, null, null, null);
 
+            subDivide_Seed(rootNode, tol, bmp,color);
+
+            bmp.Dispose();
+            return rootNode;
+        }
+
+        static void subDivide_Seed(QTnode root, double tol, Bitmap bmp, Color color)
+        {
+            if (checkFill_Seed(root.rect, bmp, color))
+            {
+
+                double width = root.rect.width / 2;
+                double height = root.rect.height / 2;
+
+                if (width > tol && height > tol)
+                {
+
+                    QTnode n1 = new QTnode(new RectangleModel(new PointModel(root.rect.origin.x, root.rect.origin.y), width, height), null, null, null, null);
+                    QTnode n2 = new QTnode(new RectangleModel(new PointModel(root.rect.origin.x + width, root.rect.origin.y), width, height), null, null, null, null);
+                    QTnode n3 = new QTnode(new RectangleModel(new PointModel(root.rect.origin.x, root.rect.origin.y + height), width, height), null, null, null, null);
+                    QTnode n4 = new QTnode(new RectangleModel(new PointModel(root.rect.origin.x + width, root.rect.origin.y + height), width, height), null, null, null, null);
+
+                    root.n1 = n1;
+                    root.n2 = n2;
+                    root.n3 = n3;
+                    root.n4 = n4;
+
+                    subDivide_Seed(n1, tol, bmp, color);
+                    subDivide_Seed(n2, tol, bmp, color);
+                    subDivide_Seed(n3, tol, bmp, color);
+                    subDivide_Seed(n4, tol, bmp, color);  
+                }
+            }
+        }
+
+        static bool checkFill_Seed(RectangleModel rect, Bitmap bmp, Color color)
+        {
+            for (int wi = (int)rect.origin.x; wi < (rect.origin.x + rect.width); wi++)
+            {
+                for (int hi = (int)rect.origin.y; hi < (rect.origin.y + rect.height); hi++)
+                {
+                    Color pixelColor = bmp.GetPixel((int)wi, (int)hi);
+
+                    if (pixelColor == color) return true;
+                }
+            }
+            return false;
+        }
+
+        public static void deleteRedundant_Seed(QTnode root, Bitmap bmp, Color color)
+        {
+            if (root.n1 != null && root.n1.rect != null)
+            {
+                if (isRedundant_Seed(root.n1, bmp,color))
+                {
+                    root.n1 = null;
+                }
+                else deleteRedundant_Seed(root.n1, bmp,color);
+            }
+            if (root.n2 != null && root.n2.rect != null)
+            {
+                if (isRedundant_Seed(root.n2, bmp, color))
+                {
+                    root.n1 = null;
+                }
+                else deleteRedundant_Seed(root.n2, bmp, color);
+            }
+            if (root.n3 != null && root.n3.rect != null)
+            {
+                if (isRedundant_Seed(root.n3, bmp, color))
+                {
+                    root.n1 = null;
+                }
+                else deleteRedundant_Seed(root.n3, bmp, color);
+            }
+            if (root.n4 != null && root.n4.rect != null)
+            {
+                if (isRedundant_Seed(root.n4, bmp, color))
+                {
+                    root.n1 = null;
+                }
+                else deleteRedundant_Seed(root.n4, bmp, color);
+            }
+
+            //edge only
+            //if (root.n1 != null || root.n2 != null || root.n3 != null || root.n4 != null)
+            //{
+            //    //if (root.n1 != null && root.n2 != null && root.n3 != null && root.n4 != null){}
+            //    //else root.rect = null;
+            //    root.rect = null;
+            //}
+
+        }
+
+        static bool isRedundant_Seed(QTnode root, Bitmap bmp, Color color)
+        {
+            bool isSeed = false;
+            bool isNot = false;
+
+            for (int wi = (int)root.rect.origin.x; wi < (root.rect.origin.x + root.rect.width); wi++)
+            {
+                for (int hi = (int)root.rect.origin.y; hi < (root.rect.origin.y + root.rect.height); hi++)
+                {
+                    Color pixelColor = bmp.GetPixel((int)wi, (int)hi);
+
+                    if (pixelColor == color)
+                    {
+                        isSeed = true;
+                    }
+
+                    else 
+                    {
+                        isNot = true;
+                    }
+                    if (isSeed && isNot)
+                        return false;
+                }
+            }
+            return true;
+        }
+        //-------------------------------------------------------------------------------------------------------------------------------------\\QUAD TREE RECTANGLE
 
         //***************************** QUAD TREE TRIANGLE **************************\\
         /// <summary>
@@ -783,10 +910,6 @@ namespace GeoMeshGUI
             {
                 for (int hi = (int)tria.origin.y; hi > (tria.origin.y - tria.height + i * coef); hi--)
                 {
-                    if (hi < 0 || hi > 376)
-                    {
-                        break;
-                    }
                     Color pixelColor = bmp.GetPixel((int)wi, (int)hi);
 
                     if (pixelColor.R == 0 && (pixelColor.G == 0) && pixelColor.B == 0)
@@ -1046,8 +1169,10 @@ namespace GeoMeshGUI
         }
         //-------------------------------------------------------------------------------------------------------------------------------------\\RAYCASTING
 
+
+
         //***************************** DITHERING **************************\\
-        public static Bitmap dithering_GenerateMatrix(Image image)
+        public static (List<PointModel>,Bitmap) dithering_GenerateMatrix(Image image, int w, int h)
         {
             int width = image.Width;
             int height = image.Height;
@@ -1060,7 +1185,7 @@ namespace GeoMeshGUI
                     int oldR = pix.R;
                     int oldG = pix.G;
                     int oldB = pix.B;
-                    int factor = 2;
+                    int factor =2;
                     int newR = (int)(factor * oldR / 255) * (255 / factor);
                     int newG = (int)(factor * oldG / 255) * (255 / factor);
                     int newB = (int)(factor * oldB / 255) * (255 / factor);
@@ -1121,11 +1246,69 @@ namespace GeoMeshGUI
                     {
                         bmp.SetPixel(x + 1, y + 1, Color.FromArgb((int)r, (int)g, (int)b));
                     }
+
+
                 }
             }
-            return bmp;
+            List <PointModel> matrix= new List<PointModel>();
+            for (int wi = 0; wi < w; wi++)
+            {
+                for (int hi = 0; hi < h; hi++)
+                {
+                    Color pixelColor = bmp.GetPixel(wi, hi);
+
+                    if (pixelColor.R >= 5 && pixelColor.G >= 5 && pixelColor.B >= 5)
+                    {
+                         bmp.SetPixel(wi, hi, Color.Cyan);
+                         matrix.Add(new PointModel(wi, hi));
+                    }
+                    else  bmp.SetPixel(wi, hi, Color.Black);
+                }
+            }
+            return (matrix, bmp);
         }
         //-------------------------------------------------------------------------------------------------------------------------------------\\RAYCASTING
+
+
+
+        //***************************** CONVEX HULL **************************\\
+        public static double sideByPoints(PointModel point, PointModel A, PointModel B)
+        {
+            return (A.x - point.x) * (B.y - point.y) - (A.y - point.y) * (B.x - point.x);
+        }
+        public static  List<PointModel> GetHull(List<PointModel> list)
+        {
+            if (list == null)
+                return null;
+
+            if (list.Count() <= 1) //no hull
+                return list;
+
+            int size = list.Count(), j = 0;
+            List<PointModel> stack = new List<PointModel>(new PointModel[2 * size]);
+
+            list.Sort((a, b) =>
+                 a.x == b.x ? a.y.CompareTo(b.y) : a.x.CompareTo(b.x));
+
+            //lower
+            for (int i = 0; i < size; ++i)
+            {
+                while (j >= 2 && sideByPoints(stack[j - 2], stack[j - 1], list[i]) <= 0)
+                    j--;
+                stack[j++] = list[i];
+            }
+
+            //upper
+            for (int i = size - 2, k = j + 1; i >= 0; i--)
+            {
+                while (j >= k && sideByPoints(stack[j - 2], stack[j - 1], list[i]) <= 0)
+                    j--;
+                stack[j++] = list[i];
+            }
+
+            return stack.Take(j - 1).ToList();
+        }
+        //-------------------------------------------------------------------------------------------------------------------------------------\\CONVEX HULL
     }
 
 

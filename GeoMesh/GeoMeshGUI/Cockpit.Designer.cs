@@ -52,6 +52,7 @@
             this.tmrQTP = new System.Windows.Forms.Timer(this.components);
             this.QTPbutton = new System.Windows.Forms.RadioButton();
             this.DITHERINGbutton1 = new System.Windows.Forms.RadioButton();
+            this.SEEDbutton1 = new System.Windows.Forms.RadioButton();
             this.SuspendLayout();
             // 
             // tmrMoving
@@ -113,7 +114,7 @@
             this.RHOMBULARbutton.AutoSize = true;
             this.RHOMBULARbutton.BackColor = System.Drawing.Color.Transparent;
             this.RHOMBULARbutton.ForeColor = System.Drawing.Color.Fuchsia;
-            this.RHOMBULARbutton.Location = new System.Drawing.Point(936, 337);
+            this.RHOMBULARbutton.Location = new System.Drawing.Point(936, 359);
             this.RHOMBULARbutton.Name = "RHOMBULARbutton";
             this.RHOMBULARbutton.Size = new System.Drawing.Size(80, 17);
             this.RHOMBULARbutton.TabIndex = 13;
@@ -126,7 +127,7 @@
             this.TRAPEZOIDALbutton.AutoSize = true;
             this.TRAPEZOIDALbutton.BackColor = System.Drawing.Color.Transparent;
             this.TRAPEZOIDALbutton.ForeColor = System.Drawing.Color.Fuchsia;
-            this.TRAPEZOIDALbutton.Location = new System.Drawing.Point(936, 360);
+            this.TRAPEZOIDALbutton.Location = new System.Drawing.Point(936, 382);
             this.TRAPEZOIDALbutton.Name = "TRAPEZOIDALbutton";
             this.TRAPEZOIDALbutton.Size = new System.Drawing.Size(83, 17);
             this.TRAPEZOIDALbutton.TabIndex = 14;
@@ -152,7 +153,7 @@
             this.label2.AutoSize = true;
             this.label2.BackColor = System.Drawing.Color.Transparent;
             this.label2.ForeColor = System.Drawing.Color.Fuchsia;
-            this.label2.Location = new System.Drawing.Point(936, 321);
+            this.label2.Location = new System.Drawing.Point(936, 343);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(152, 13);
             this.label2.TabIndex = 16;
@@ -257,7 +258,7 @@
             this.RAYCASTINGutton.AutoSize = true;
             this.RAYCASTINGutton.BackColor = System.Drawing.Color.Transparent;
             this.RAYCASTINGutton.ForeColor = System.Drawing.Color.Fuchsia;
-            this.RAYCASTINGutton.Location = new System.Drawing.Point(936, 383);
+            this.RAYCASTINGutton.Location = new System.Drawing.Point(936, 405);
             this.RAYCASTINGutton.Name = "RAYCASTINGutton";
             this.RAYCASTINGutton.Size = new System.Drawing.Size(121, 17);
             this.RAYCASTINGutton.TabIndex = 25;
@@ -302,7 +303,7 @@
             this.DITHERINGbutton1.AutoSize = true;
             this.DITHERINGbutton1.BackColor = System.Drawing.Color.Transparent;
             this.DITHERINGbutton1.ForeColor = System.Drawing.Color.Fuchsia;
-            this.DITHERINGbutton1.Location = new System.Drawing.Point(936, 406);
+            this.DITHERINGbutton1.Location = new System.Drawing.Point(936, 428);
             this.DITHERINGbutton1.Name = "DITHERINGbutton1";
             this.DITHERINGbutton1.Size = new System.Drawing.Size(109, 17);
             this.DITHERINGbutton1.TabIndex = 28;
@@ -310,12 +311,26 @@
             this.DITHERINGbutton1.UseVisualStyleBackColor = false;
             this.DITHERINGbutton1.Click += new System.EventHandler(this.DITHERINGbutton1_Click);
             // 
+            // SEEDbutton1
+            // 
+            this.SEEDbutton1.AutoSize = true;
+            this.SEEDbutton1.BackColor = System.Drawing.Color.Transparent;
+            this.SEEDbutton1.ForeColor = System.Drawing.Color.Fuchsia;
+            this.SEEDbutton1.Location = new System.Drawing.Point(939, 303);
+            this.SEEDbutton1.Name = "SEEDbutton1";
+            this.SEEDbutton1.Size = new System.Drawing.Size(63, 17);
+            this.SEEDbutton1.TabIndex = 29;
+            this.SEEDbutton1.Text = "S E E D";
+            this.SEEDbutton1.UseVisualStyleBackColor = false;
+            this.SEEDbutton1.Click += new System.EventHandler(this.SEEDbutton1_Click);
+            // 
             // Cockpit
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.ClientSize = new System.Drawing.Size(1176, 697);
+            this.Controls.Add(this.SEEDbutton1);
             this.Controls.Add(this.DITHERINGbutton1);
             this.Controls.Add(this.QTPbutton);
             this.Controls.Add(this.QTTbutton);
@@ -368,5 +383,6 @@
         private System.Windows.Forms.Timer tmrQTP;
         private System.Windows.Forms.RadioButton QTPbutton;
         private System.Windows.Forms.RadioButton DITHERINGbutton1;
+        private System.Windows.Forms.RadioButton SEEDbutton1;
     }
 }
