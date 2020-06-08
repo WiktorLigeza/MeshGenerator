@@ -548,7 +548,7 @@ namespace GeoMeshGUI
         }
         //-------------------------------------------------------------------------------------------------------------------------------------\\QUAD TREE RECTANGLE
 
-        //***************************** QUAD TREE RECTANGLE **************************\\
+        //***************************** QUAD TREE RECTANGLE SEED **************************\\
         public static QTnode quadTreeGenerator_Seed(Image image, double width, double height, double tol, Color color)
         {
             //init
@@ -675,7 +675,69 @@ namespace GeoMeshGUI
             }
             return true;
         }
-        //-------------------------------------------------------------------------------------------------------------------------------------\\QUAD TREE RECTANGLE
+
+        public static void onlyFigure_Seed(QTnode root, Bitmap bmp, Color color )
+        {
+            bool redundant;
+            if (root.n1 != null)
+            {
+                redundant = isFigure_Seed(root.n1, bmp, color);
+                if (redundant) // is it redundant
+                {
+                    root.n1 = null;
+                }
+                else onlyFigure_Seed(root.n1, bmp, color);
+            }
+            if (root.n2 != null)
+            {
+                redundant = isFigure_Seed(root.n2, bmp, color);
+                if (redundant)
+                {
+                    root.n2 = null;
+                }
+                else onlyFigure_Seed(root.n2, bmp, color);
+            }
+            if (root.n3 != null)
+            {
+                redundant = isFigure_Seed(root.n3, bmp, color);
+                if (redundant)
+                {
+                    root.n3 = null;
+                }
+                else onlyFigure_Seed(root.n3, bmp, color);
+            }
+            if (root.n4 != null)
+            {
+                redundant = isFigure_Seed(root.n4, bmp, color);
+                if (redundant)
+                {
+                    root.n4 = null;
+                }
+                else onlyFigure_Seed(root.n4, bmp, color);
+            }
+
+            //edge only
+            if (root.n1 != null || root.n2 != null || root.n3 != null || root.n4 != null)
+            {
+                root.rect = null;
+            }
+
+        }
+
+        static bool isFigure_Seed(QTnode root, Bitmap bmp, Color color)
+        {
+            for (int wi = (int)root.rect.origin.x; wi < (root.rect.origin.x + root.rect.width); wi++)
+            {
+                for (int hi = (int)root.rect.origin.y; hi < (root.rect.origin.y + root.rect.height); hi++)
+                {
+                    Color pixelColor = bmp.GetPixel((int)wi, (int)hi);
+
+                    if (pixelColor == color) return false;
+                }
+            }
+            return true;
+        }
+        //-------------------------------------------------------------------------------------------------------------------------------------\\QUAD TREE RECTANGLE SEED
 
         //***************************** QUAD TREE TRIANGLE **************************\\
         /// <summary>
@@ -896,6 +958,7 @@ namespace GeoMeshGUI
             if (root.n1 != null || root.n2 != null || root.n3 != null || root.n4 != null)
             {
                 root.triaDown = null;
+                root.triaUp = null;
             }
 
         }
@@ -959,7 +1022,240 @@ namespace GeoMeshGUI
         }
         //-------------------------------------------------------------------------------------------------------------------------------------\\QUAD TREE TRIANGLE
 
+        //***************************** QUAD TREE TRIANGLE SEED **************************\\
+        /// <summary>
+        /// generates quad tree based on image
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="tol"></param>
+        /// <returns></returns>
+        public static QTnodeTriangle quadTreeGenerator_Triangle_Seed(Image image, double width, double height, double tol, Color color)
+        {
+            //init
+            Bitmap bmp = new Bitmap(image);
+            QTnodeTriangle rootNode = new QTnodeTriangle(new TriangleModel(new PointModel(0, 0), width, height), //up
+                new TriangleModel(new PointModel(width, height), width, height), //down
+                null, null, null, null);
 
+            subDivide_Triangle_Seed(rootNode, tol, bmp, color);
+
+            bmp.Dispose();
+            return rootNode;
+        }
+
+        static void subDivide_Triangle_Seed(QTnodeTriangle root, double tol, Bitmap bmp, Color color)
+        {
+            if (checkFill_TriangleUp_Seed(root.triaUp, bmp, color) || checkFill_TriangleDown_Seed(root.triaDown, bmp, color))
+            {
+
+                double width = root.triaUp.width / 2;
+                double height = root.triaUp.height / 2;
+
+                if (width > tol && height > tol)
+                {
+                    //up
+                    QTnodeTriangle n1 = new QTnodeTriangle(new TriangleModel(new PointModel(root.triaUp.origin.x, root.triaUp.origin.y), width, height), //up
+                        new TriangleModel(new PointModel(root.triaUp.origin.x + width, root.triaUp.origin.y + height), width, height), //down
+                        null, null, null, null);
+
+                    QTnodeTriangle n2 = new QTnodeTriangle(new TriangleModel(new PointModel(root.triaUp.origin.x + width, root.triaUp.origin.y), width, height), //up
+                        new TriangleModel(new PointModel(root.triaUp.origin.x + width + width, root.triaUp.origin.y + height), width, height), //down
+                        null, null, null, null);
+
+                    QTnodeTriangle n3 = new QTnodeTriangle(new TriangleModel(new PointModel(root.triaUp.origin.x, root.triaUp.origin.y + height), width, height),
+                        new TriangleModel(new PointModel(root.triaUp.origin.x + width, root.triaUp.origin.y + height + height), width, height),
+                        null, null, null, null);
+
+                    QTnodeTriangle n4 = new QTnodeTriangle(new TriangleModel(new PointModel(root.triaUp.origin.x + width, root.triaUp.origin.y + height), width, height),
+                        new TriangleModel(new PointModel(root.triaUp.origin.x + width + width, root.triaUp.origin.y + height + height), width, height),
+                        null, null, null, null);
+
+
+                    root.n1 = n1;
+                    root.n2 = n2;
+                    root.n3 = n3;
+                    root.n4 = n4;
+
+
+                    subDivide_Triangle_Seed(n1, tol, bmp, color);
+                    subDivide_Triangle_Seed(n2, tol, bmp, color);
+                    subDivide_Triangle_Seed(n3, tol, bmp, color);
+                    subDivide_Triangle_Seed(n4, tol, bmp, color);
+                }
+            }
+        }
+
+        static bool checkFill_TriangleUp_Seed(TriangleModel tria, Bitmap bmp, Color color)
+        {
+            int i = 0;
+            double coef = tria.height / tria.width;
+            for (int wi = (int)tria.origin.x; wi < (tria.origin.x + tria.width); wi++)
+            {
+                for (int hi = (int)tria.origin.y; hi < (tria.origin.y + tria.height - i * coef); hi++)
+                {
+                    Color pixelColor = bmp.GetPixel((int)wi, (int)hi);
+                    if (pixelColor == color) return true;
+                }
+                i++;
+            }
+            return false;
+        }
+
+        static bool checkFill_TriangleDown_Seed(TriangleModel tria, Bitmap bmp, Color color)
+        {
+
+            int i = 0;
+            double coef = tria.height / tria.width;
+            for (int wi = (int)tria.origin.x; wi > (tria.origin.x - tria.width); wi--)
+            {
+                for (int hi = (int)tria.origin.y; hi > (tria.origin.y - tria.height + i * coef); hi--)
+                {
+                    if (((hi < 0 || hi > bmp.Height - 1) || (wi < 0 || wi > bmp.Width - 1)) !=true)
+                    {
+                        Color pixelColor = bmp.GetPixel((int)wi, (int)hi);
+
+                        if (pixelColor == color) return true;
+                    }
+                }
+                i++;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// leaves only figure shape mesh
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="bmp"></param>
+        /// <param name="isBlack"></param>
+        public static void onlyFigure_Triangle_Seed(QTnodeTriangle root, Bitmap bmp, Color color)
+        {
+            bool redundant, black;
+            //check upper triangle
+            if (root.n1 != null && root.n1.triaUp != null)
+            {
+                redundant = isFigure_Triangle_Up_Seed(root.n1.triaUp, bmp, color);
+                if (redundant ) // is it redundant
+                {
+                    root.n1.triaUp = null;
+                }
+                else onlyFigure_Triangle_Seed(root.n1, bmp, color);
+            }
+            if (root.n2 != null && root.n2.triaUp != null)
+            {
+                redundant = isFigure_Triangle_Up_Seed(root.n2.triaUp, bmp, color);
+                if (redundant) // is it redundant
+                {
+                    root.n2.triaUp = null;
+                }
+                else onlyFigure_Triangle_Seed(root.n2, bmp, color);
+            }
+            if (root.n3 != null && root.n3.triaUp != null)
+            {
+                redundant = isFigure_Triangle_Up_Seed(root.n3.triaUp, bmp, color);
+                if (redundant) // is it redundant
+                {
+                    root.n3.triaUp = null;
+                }
+                else onlyFigure_Triangle_Seed(root.n3, bmp, color);
+            }
+            if (root.n4 != null && root.n4.triaUp != null)
+            {
+                redundant = isFigure_Triangle_Up_Seed(root.n4.triaUp, bmp, color);
+                if (redundant) // is it redundant
+                {
+                    root.n4.triaUp = null;
+                }
+                else onlyFigure_Triangle_Seed(root.n4, bmp, color);
+            }
+
+
+            //check upper triangle
+            if (root.n1 != null && root.n1.triaDown != null)
+            {
+                redundant = isFigure_Triangle_Down_Seed(root.n1.triaDown, bmp, color);
+                if (redundant) // is it redundant
+                {
+                    root.n1.triaDown = null;
+                }
+                else onlyFigure_Triangle_Seed(root.n1, bmp,  color);
+            }
+            if (root.n2 != null && root.n2.triaDown != null)
+            {
+                redundant = isFigure_Triangle_Down_Seed(root.n2.triaDown, bmp, color);
+                if (redundant) // is it redundant
+                {
+                    root.n2.triaDown = null;
+                }
+                else onlyFigure_Triangle_Seed(root.n2, bmp, color);
+            }
+            if (root.n3 != null && root.n3.triaDown != null)
+            {
+                redundant = isFigure_Triangle_Down_Seed(root.n3.triaDown, bmp, color);
+                if (redundant) // is it redundant
+                {
+                    root.n3.triaDown = null;
+                }
+                else onlyFigure_Triangle_Seed(root.n3, bmp, color);
+            }
+            if (root.n4 != null && root.n4.triaDown != null)
+            {
+                redundant = isFigure_Triangle_Down_Seed(root.n4.triaDown, bmp, color);
+                if (redundant) // is it redundant
+                {
+                    root.n4.triaDown = null;
+                }
+                else onlyFigure_Triangle_Seed(root.n4, bmp, color);
+            }
+
+            //edge only
+            if (root.n1 != null || root.n2 != null || root.n3 != null || root.n4 != null)
+            {
+                root.triaDown = null;
+                root.triaUp = null;
+            }
+
+        }
+
+        static bool isFigure_Triangle_Down_Seed(TriangleModel tria, Bitmap bmp, Color color)
+        {
+            int i = 0;
+            double coef = tria.height / tria.width;
+            for (int wi = (int)tria.origin.x; wi > (tria.origin.x - tria.width); wi--)
+            {
+                for (int hi = (int)tria.origin.y; hi > (tria.origin.y - tria.height + i * coef); hi--)
+                {
+                    if (((hi < 0 || hi > bmp.Height - 1) || (wi < 0 || wi > bmp.Width - 1)) != true)
+                    {
+                        Color pixelColor = bmp.GetPixel((int)wi, (int)hi);
+
+                        if (pixelColor == color) return false;
+                    }
+                }
+                i++;
+            }
+            return true;
+        }
+
+        static bool isFigure_Triangle_Up_Seed(TriangleModel tria, Bitmap bmp, Color color)
+        {
+            int i = 0;
+            double coef = tria.height / tria.width;
+            for (int wi = (int)tria.origin.x; wi < (tria.origin.x + tria.width); wi++)
+            {
+                for (int hi = (int)tria.origin.y; hi < (tria.origin.y + tria.height - i * coef); hi++)
+                {
+                    Color pixelColor = bmp.GetPixel((int)wi, (int)hi);
+
+                    if (pixelColor == color) return false;
+                }
+                i++;
+            }
+            return true;
+        }
+        //-------------------------------------------------------------------------------------------------------------------------------------\\QUAD TREE TRIANGLE SEED
 
         //***************************** QUAD TREE BY POINTS **************************\\
 

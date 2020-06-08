@@ -48,10 +48,10 @@ namespace GeoMeshGUI
         Pen blueLine = new Pen(Color.LightBlue);
         Pen grayLine = new Pen(Color.Gray);
         Image image;
+        Bitmap temp;
+        string imPath;
         Color origin;
         bool set = true;
-        bool setQT = false; //quad tree rect
-        bool setQTT = false; // quad tree tria
         bool setQTP = false; //quad tree by points
         bool setQTS = false; //quad tree by seed
         bool raycasting = false;
@@ -71,23 +71,6 @@ namespace GeoMeshGUI
         { 
             g = graph.CreateGraphics();
             if (set) { setGraph(); }
-            if (setQT)
-            {
-                //putSubdivision(rootNode,0); 
-                Bitmap bmp = new Bitmap(image);
-
-                ///rect
-                //Engine.onlyFigure(rootNode, bmp, false); //only fig
-                // Engine.deleteRedundant(rootNode, bmp); 
-                putSubdivision(rootNode, 0, "pink");
-            }
-            if (setQTT)
-            {
-                Bitmap bmp = new Bitmap(image);
-                ///tria
-                Engine.onlyFigure_Triangle(rootNode_Triangle, bmp, false); //only fig
-                putSubdivision_Triangle(rootNode_Triangle, 0, "pink");
-            }
             if (setQTP)
             {
                 putSubdivision_ByPoints(pointsQTP);
@@ -315,10 +298,10 @@ namespace GeoMeshGUI
             if (root.rect!=null)
             {
                 //put diagonal
-               // g.DrawLine(
-               //new Pen(Color.DeepPink, 1),
-               //(int)root.rect.origin.x + (float)root.rect.width, (int)root.rect.origin.y,
-               // (float)root.rect.origin.x, (float)root.rect.origin.y + (float)root.rect.height);
+                // g.DrawLine(
+                //new Pen(Color.DeepPink, 1),
+                //(int)root.rect.origin.x + (float)root.rect.width, (int)root.rect.origin.y,
+                // (float)root.rect.origin.x, (float)root.rect.origin.y + (float)root.rect.height);
 
                 //put traingle
                 //Point[] triangle = new Point[] { new Point((int)root.rect.origin.x, (int)root.rect.origin.y),
@@ -326,9 +309,20 @@ namespace GeoMeshGUI
                 //    new Point((int)root.rect.origin.x+(int)root.rect.width, (int)root.rect.origin.y) };
                 //g.DrawPolygon(new Pen(Color.Cyan, 1), triangle);
 
-                //put rectangle
-                g.DrawRectangle(setPenColor(color), (float)root.rect.origin.x, (float)root.rect.origin.y,
-                   (float)root.rect.width, (float)root.rect.height);
+                if (graph.BackgroundImage != null)
+                {
+                    using (Graphics g = Graphics.FromImage(graph.BackgroundImage))
+                    {
+                        //put rectangle
+                        g.DrawRectangle(setPenColor(color), (float)root.rect.origin.x, (float)root.rect.origin.y,
+                           (float)root.rect.width, (float)root.rect.height);
+                    }
+                } 
+                else
+                {
+                    g.DrawRectangle(setPenColor(color), (float)root.rect.origin.x, (float)root.rect.origin.y,
+                              (float)root.rect.width, (float)root.rect.height);
+                }
 
                 //matrix
             //    g.FillEllipse(
@@ -354,40 +348,29 @@ namespace GeoMeshGUI
         public void putSubdivision_Triangle(QTnodeTriangle root, int delay, string color)
         {
             System.Threading.Thread.Sleep(delay);
-            if (root.triaDown != null && root.triaUp!= null)
+            if (root.triaUp != null)
             {
-                //put diagonal
-                // g.DrawLine(
-                //new Pen(Color.DeepPink, 1),
-                //(int)root.rect.origin.x + (float)root.rect.width, (int)root.rect.origin.y,
-                // (float)root.rect.origin.x, (float)root.rect.origin.y + (float)root.rect.height);
-
-                //put traingle
-                Point[] triangleUp = new Point[] {
-                new Point((int)root.triaUp.origin.x, (int)root.triaUp.origin.y),
+                using (Graphics g = Graphics.FromImage(graph.BackgroundImage))
+                {
+                    Point[] triangleUp = new Point[] {
+                    new Point((int)root.triaUp.origin.x, (int)root.triaUp.origin.y),
                     new Point((int)root.triaUp.origin.x + (int)root.triaUp.width, (int)root.triaUp.origin.y),
                     new Point((int)root.triaUp.origin.x, (int)root.triaUp.origin.y + (int)root.triaUp.height) };
-            g.DrawPolygon(new Pen(Color.DeepPink, 1), triangleUp);
-                Point[] triangleDown = new Point[] {
-                new Point((int)root.triaDown.origin.x, (int)root.triaDown.origin.y),
+                    g.DrawPolygon(new Pen(Color.DeepPink, 1), triangleUp);
+                }
+               
+            }
+            if (root.triaDown != null )
+            {
+                using (Graphics g = Graphics.FromImage(graph.BackgroundImage))
+                {
+                    Point[] triangleDown = new Point[] {
+                    new Point((int)root.triaDown.origin.x, (int)root.triaDown.origin.y),
                     new Point((int)root.triaDown.origin.x - (int)root.triaDown.width, (int)root.triaDown.origin.y),
                     new Point((int)root.triaDown.origin.x, (int)root.triaDown.origin.y - (int)root.triaDown.height) };
-                g.DrawPolygon(new Pen(Color.Cyan, 1), triangleDown);
+                    g.DrawPolygon(new Pen(Color.Cyan, 1), triangleDown);
+                }
 
-
-                //matrix
-                //g.FillEllipse(
-                //Brushes.Cyan,
-                //(float)(float)root.triaDown.origin.x - 1,
-                // (float)root.triaDown.origin.y - 1,
-                // 2,
-                // 2);
-                //         g.FillEllipse(
-                //Brushes.BlueViolet,
-                //(float)(float)root.triaUp.origin.x - 1,
-                // (float)root.triaUp.origin.y - 1,
-                // 2,
-                // 2);
             }
 
 
@@ -409,6 +392,7 @@ namespace GeoMeshGUI
 
             foreach (LineModel wall in walls)
             {
+
                 g.DrawLine(
                 new Pen(Color.DeepPink, 3),
                (float)wall.A.x + center_x + 3,
@@ -497,7 +481,7 @@ namespace GeoMeshGUI
         // mesh
         private void TRIANGULARbutton_Click(object sender, EventArgs e)
         {
-            refreshGraph(true, false);
+            refreshGraph(true);
             if (validate())
             {
                 graph.Refresh();
@@ -514,7 +498,7 @@ namespace GeoMeshGUI
 
         private void QUADRANGULRbutton_Click(object sender, EventArgs e)
         {
-            refreshGraph(true,false);
+            refreshGraph(true);
             if (validate())
             {
                 graph.Refresh();
@@ -532,12 +516,11 @@ namespace GeoMeshGUI
         // QT
         private void QTbutton_Click(object sender, EventArgs e)
         {
-            raycasting = false;
-            setQTP = false;
+            refreshGraph(false);
             try
             {
                 rootNode = null;
-                refreshGraph(false, false);
+               
 
                 OpenFileDialog dialog = new OpenFileDialog();
                 dialog.Filter = "Image files (*.jpg, *.jpeg, *.jpe, *.jfif, *.png) | *.jpg; *.jpeg; *.jpe; *.jfif; *.png";
@@ -559,8 +542,15 @@ namespace GeoMeshGUI
 
                     //generate QT
                     rootNode = Engine.quadTreeGenerator(image,graph.Width,graph.Height,tolerance); //rectangle
-                    
-                    setQT = true;
+
+                    //putSubdivision(rootNode,0); 
+                    Bitmap bmp = new Bitmap(image);
+
+                    ///rect
+                    Engine.onlyFigure(rootNode, bmp, false); //only fig
+                    // Engine.deleteRedundant(rootNode, bmp); 
+                    putSubdivision(rootNode, 0, "pink");
+                    graph.Refresh();
                 }
             }
             catch (Exception ex)
@@ -572,12 +562,11 @@ namespace GeoMeshGUI
 
         private void QTTbutton_Click(object sender, EventArgs e)
         {
-            raycasting = false;
-            setQTP = false;
+            refreshGraph(false);
             try
             {
                 rootNode_Triangle = null;
-                refreshGraph(false, false);
+                refreshGraph(false);
 
                 OpenFileDialog dialog = new OpenFileDialog();
                 dialog.Filter = "Image files (*.jpg, *.jpeg, *.jpe, *.jfif, *.png) | *.jpg; *.jpeg; *.jpe; *.jfif; *.png";
@@ -600,7 +589,10 @@ namespace GeoMeshGUI
                     //generate QT
                     rootNode_Triangle = Engine.quadTreeGenerator_Triangle(image, graph.Width - 1, graph.Height, tolerance); //triangle
 
-                    setQTT = true;
+                    Bitmap bmp = new Bitmap(image);
+                    Engine.onlyFigure_Triangle(rootNode_Triangle, bmp, false); //only fig
+                    putSubdivision_Triangle(rootNode_Triangle, 0, "pink");
+                    graph.Refresh();
                 }
             }
             catch (Exception ex)
@@ -612,6 +604,7 @@ namespace GeoMeshGUI
 
         private void QTPbutton_Click(object sender, EventArgs e)
         {
+            refreshGraph(false);
             graph.BackColor = Color.Black;
             setQTP = true;
             set = false;
@@ -622,11 +615,9 @@ namespace GeoMeshGUI
 
         private void SEEDbutton1_Click(object sender, EventArgs e)
         {
-            raycasting = false;
-            setQTP = false;
+            refreshGraph(false);
             try
             {
-                refreshGraph(false, false);
 
                 OpenFileDialog dialog = new OpenFileDialog();
                 dialog.Filter = "Image files (*.jpg, *.jpeg, *.jpe, *.jfif, *.png, *.bmp) | *.jpg; *.jpeg; *.jpe; *.jfif; *.png; *.bmp;";
@@ -639,12 +630,12 @@ namespace GeoMeshGUI
 
                     // get path
                     var filePath = dialog.FileName;
-
-                    //add picture
-                    image = Image.FromFile(filePath);
+                    imPath = filePath;
+                    image = Image.FromFile(imPath);
+                    graph.BackgroundImage = image;
                     graph.Width = image.Width;
                     graph.Height = image.Height;
-                    graph.BackgroundImage = image;
+                    //add picture
                     setQTS = true;
                 }
             }
@@ -658,9 +649,7 @@ namespace GeoMeshGUI
         // test
         private void RHOMBULARbutton_Click(object sender, EventArgs e)
         {
-            raycasting = false;
-            setQTP = false;
-            graph.Refresh();
+            refreshGraph(true);
             if (validate())
             {
                 List<PointModel> PolygonVertices = new List<PointModel>();
@@ -687,9 +676,7 @@ namespace GeoMeshGUI
 
         private void TRAPEZOIDALbutton_Click(object sender, EventArgs e)
         {
-            raycasting = false;
-            setQTP = false;
-            graph.Refresh();
+            refreshGraph(true);
             if (validate())
             {
                 List<PointModel> PolygonVertices = new List<PointModel>();
@@ -716,6 +703,7 @@ namespace GeoMeshGUI
 
         private void RAYCASTINGutton_Click_1(object sender, EventArgs e)
         {
+            refreshGraph(true);
             graph.BackColor = Color.Black;
             raycasting = true;
             set = false;
@@ -737,7 +725,7 @@ namespace GeoMeshGUI
             raycasting = false;
             setQTP = false;
             rootNode = null;
-            refreshGraph(false, false);
+            refreshGraph(false);
 
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Filter = "Image files (*.jpg, *.jpeg, *.jpe, *.jfif, *.png) | *.jpg; *.jpeg; *.jpe; *.jfif; *.png";
@@ -756,9 +744,20 @@ namespace GeoMeshGUI
         // data
         private void SAVEbutton_Click(object sender, EventArgs e)
         {
-            string fileName = "default";
-            
-            if (matrix.Count > 0 && links.Count > 0)
+            if(setQTS == true )
+            {
+
+                //get file name
+                CustomDialogBox saveAs = new CustomDialogBox("SAVE AS", "S A V E");
+                if (saveAs.ShowDialog() == DialogResult.OK)
+                {
+                    temp.Save(saveAs.fileName, ImageFormat.Png);
+                    CustomMessageBox msg = new CustomMessageBox("S-A-V-E-D");
+                    msg.Show();
+                    temp.Dispose();
+                }
+            }
+            else if (setQTS==false && matrix.Count > 0 && links.Count > 0)
             {
                 //get file name
                 CustomDialogBox saveAs = new CustomDialogBox("SAVE AS", "S A V E");
@@ -783,8 +782,8 @@ namespace GeoMeshGUI
             CustomDialogBox saveAs = new CustomDialogBox("FILE NAME", "O P E N ");
             if (saveAs.ShowDialog() == DialogResult.OK)
             {
-                graph.Refresh();
-               (matrix,links) = DataManager.importFromCSV(saveAs.fileName);
+                refreshGraph(false);
+                (matrix,links) = DataManager.importFromCSV(saveAs.fileName);
                 //show imported
                 putMatrix(matrix,10);
                 putMesh(links,10);
@@ -834,38 +833,54 @@ namespace GeoMeshGUI
             }
             if(setQTS)
             {
-                Image im = graph.BackgroundImage;
-                graph.Width = im.Width;
-                graph.Height = im.Height;
+                image = Image.FromFile(imPath);
+                graph.BackgroundImage = image;
+                graph.Width = image.Width;
+                graph.Height = image.Height;
 
                 Bitmap bmp = new Bitmap(image);
                 Color pixColor = bmp.GetPixel(e.X, e.Y);
-                
+                int tolerance = 1; //default
+                CustomDialogBox tol = new CustomDialogBox("tolerance", "E N G A G E");
+                if (tol.ShowDialog() == DialogResult.OK)
+                {
+                    int.TryParse(tol.fileName, out tolerance);
+                }
 
-                rootNode = Engine.quadTreeGenerator_Seed(bmp, im.Width, im.Height, 3, pixColor); //rectangle
-               // Engine.deleteRedundant_Seed(rootNode, bmp, pixColor);
+                //rootNode = Engine.quadTreeGenerator_Seed(bmp, im.Width, im.Height, 2, pixColor); //rectangle
+                //Engine.onlyFigure_Seed(rootNode, bmp, pixColor); //only fig
+
+
+
+                rootNode_Triangle = Engine.quadTreeGenerator_Triangle_Seed(bmp, image.Width, image.Height, tolerance, pixColor); //triangle
+                Engine.onlyFigure_Triangle_Seed(rootNode_Triangle, bmp, pixColor); //only fig
+
+
+
+                //putSubdivision(rootNode, 0, "red");
+                putSubdivision_Triangle(rootNode_Triangle, 0, "pink");
+                graph.DrawToBitmap(bmp, new Rectangle(0, 0, image.Width, image.Height));
+                temp = bmp;
+                //bmp.Dispose();
                 graph.Refresh();
-
-                putSubdivision(rootNode, 0, "red");
 
             }
         }
 
-        public void refreshGraph(bool setGraph,bool setQ)
+        public void refreshGraph(bool setGraph)
         {
             set = setGraph;
-            setQT = setQ;
-            setQTT = setQ;
             setQTP = false;
             setQTS = false;
 
             graph.Width = w;
             graph.Height = h;
 
-            graph.Refresh();
+            
             graph.BackgroundImage = null;
             raycasting = false;
-            graph.BackColor = Color.BlueViolet;
+            graph.BackColor = origin;
+            graph.Refresh();
         }
 
         //timers
